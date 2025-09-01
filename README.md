@@ -29,6 +29,18 @@ Another gene of potential interest is ENSG00000240567 (LINC02067), which appears
 
 This analysis uncovered several potentially relevant genes. However, the limited sample size likely reduced statistical power, such that only very strong signals could be detected with confidence. Future studies employing larger datasets will be valuable for validating these findings. Moreover, longitudinal datasets that include samples from different stages of gestation could provide important insights into how molecular profiles change over time and how these changes are influenced by GDM. Such data would help disentangle gestational age-related variation from disease-specific effects, thereby clarifying the true molecular signature of GDM.
 
+### Data Analysis
+
+    Data Preprocessing
+
+    Differential Expression Analysis using the DESeq2 Package
+
+    Genomic Control
+
+    Multiple Testing Adjustment 
+
+    Visualizations of the Results
+
 ### References
 
 Love, Michael I., Wolfgang Huber, and Simon Anders. 2014. “Moderated Estimation of Fold Change and Dispersion for RNA-Seq Data with DESeq2” 15: 550. https://doi.org/10.1186/s13059-014-0550-8.
