@@ -1,8 +1,8 @@
 # Differential Gene Expression in Placental Tissue from Women with and without Gestational Diabetes Mellitus
 
-##### Keywords: Differential Expression Analysis - DESeq2 - Genomic Control - Multiple Testing Adjustment - Dermicidin
-
 ### Renderen HTML file: https://carofj.github.io/Differential-Gene-Expression-in-Placental-Tissue-from-Women-with-and-without-GDM/diffExGenesGDMPlacenta.html
+
+##### Keywords: Differential Expression Analysis - DESeq2 - Genomic Control - Multiple Testing Adjustment - Dermicidin
 
 ### Introduction
 Gestational diabetes mellitus (GDM) is among the most common complications of pregnancy, yet it remains frequently underdiagnosed. The condition is associated with increased risks of adverse outcomes for both mother and child, including the later development of type 2 diabetes and obesity. Identifying biomarkers that distinguish women who develop GDM from those who do not is therefore of considerable interest, as such markers could provide insights into the underlying pathophysiology of GDM and may also serve as predictive indicators to enable timely intervention (McIntyre et al. 2019).
