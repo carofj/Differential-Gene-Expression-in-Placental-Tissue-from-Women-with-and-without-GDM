@@ -43,11 +43,11 @@ This analysis uncovered several potentially relevant genes. However, the limited
 
 ### References
 
-Love, Michael I., Wolfgang Huber, and Simon Anders. 2014. “Moderated Estimation of Fold Change and Dispersion for RNA-Seq Data with DESeq2” 15: 550. https://doi.org/10.1186/s13059-014-0550-8.
-Love, Michael I, Zhu, Anqi, and Ibrahim, Joseph G. 2018. “Heavy-Tailed Prior Distributions for Sequence Count Data: Removing the Noise and Preserving Large Differences.” Oxford University Press (OUP). https://doi.org/10.17615/J2DS-AK73.
-McIntyre, H. David, Patrick Catalano, Cuilin Zhang, Gernot Desoye, Elisabeth R. Mathiesen, and Peter Damm. 2019. “Gestational Diabetes Mellitus.” Nature Reviews Disease Primers 5 (1). https://doi.org/10.1038/s41572-019-0098-8.
-National Center for Biotechnology Information. 2025. “NCBI Gene: LINC02067 (Homo Sapiens), Gene ID: 101243545.” https://www.ncbi.nlm.nih.gov/gene/101243545.
-NCBI. 2025. “NCBI Gene ID:117159, Dermcidin (Homo Sapiens).” https://www.ncbi.nlm.nih.gov/gene/117159.
-Saucedo, Renata, Clara Ortega-Camarillo, Aldo Ferreira-Hermosillo, Mary Flor Díaz-Velázquez, Claudia Meixueiro-Calderón, and Jorge Valencia-Ortega. 2023. “Role of Oxidative Stress and Inflammation in Gestational Diabetes Mellitus.” Antioxidants 12 (10): 1812. https://doi.org/10.3390/antiox12101812.
-Wang, J, and Jin H. 2021-12-31. “RNA Sequence of Gestational Diabetes Mellitus (GDM) and Healthy Control Placentas.” https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154414.
+1. Love, Michael I., Wolfgang Huber, and Simon Anders. 2014. “Moderated Estimation of Fold Change and Dispersion for RNA-Seq Data with DESeq2” 15: 550. https://doi.org/10.1186/s13059-014-0550-8.
+2. Love, Michael I, Zhu, Anqi, and Ibrahim, Joseph G. 2018. “Heavy-Tailed Prior Distributions for Sequence Count Data: Removing the Noise and Preserving Large Differences.” Oxford University Press (OUP). https://doi.org/10.17615/J2DS-AK73.
+3. McIntyre, H. David, Patrick Catalano, Cuilin Zhang, Gernot Desoye, Elisabeth R. Mathiesen, and Peter Damm. 2019. “Gestational Diabetes Mellitus.” Nature Reviews Disease Primers 5 (1). https://doi.org/10.1038/s41572-019-0098-8.
+4. National Center for Biotechnology Information. 2025. “NCBI Gene: LINC02067 (Homo Sapiens), Gene ID: 101243545.” https://www.ncbi.nlm.nih.gov/gene/101243545.
+5. NCBI. 2025. “NCBI Gene ID:117159, Dermcidin (Homo Sapiens).” https://www.ncbi.nlm.nih.gov/gene/117159.
+6. Saucedo, Renata, Clara Ortega-Camarillo, Aldo Ferreira-Hermosillo, Mary Flor Díaz-Velázquez, Claudia Meixueiro-Calderón, and Jorge Valencia-Ortega. 2023. “Role of Oxidative Stress and Inflammation in Gestational Diabetes Mellitus.” Antioxidants 12 (10): 1812. https://doi.org/10.3390/antiox12101812.
+7. Wang, J, and Jin H. 2021-12-31. “RNA Sequence of Gestational Diabetes Mellitus (GDM) and Healthy Control Placentas.” https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154414.
 
