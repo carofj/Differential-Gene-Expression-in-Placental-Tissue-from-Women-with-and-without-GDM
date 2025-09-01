@@ -1,0 +1,692 @@
+---
+title: "Differential Gene Expression in Placental Tissue from Women with and without Gestational Diabetes Mellitus"
+author: "Carolina Ferreira Jørgensen, MSc in Bioinformatics"
+format:
+  html: 
+    theme: 
+      light: cosmo
+      dark: slate
+    code-link: true
+    highlight-style:
+      light: tango
+      dark: zenburn
+    code-fold: true
+    code-summary: "Show code"
+    toc: true
+    toc-location: left
+    toc-depth: 4
+    code-tools: true
+editor: visual
+bibliography: references.bib
+---
+
+![](images/photo.jpg){width="117"}
+
+### Introduction
+
+Gestational diabetes mellitus (GDM) is among the most common complications of pregnancy, yet it remains frequently underdiagnosed. The condition is associated with increased risks of adverse outcomes for both mother and child, including the later development of type 2 diabetes and obesity. Identifying biomarkers that distinguish women who develop GDM from those who do not is therefore of considerable interest, as such markers could provide insights into the underlying pathophysiology of GDM and may also serve as predictive indicators to enable timely intervention [@McIntyre2019].
+
+This study utilized publicly available RNA sequencing data entitled *“RNA sequence of gestational diabetes mellitus (GDM) and healthy control placentas”*, obtained from the NCBI Gene Expression Omnibus (GEO) database [@GSE154414]. The dataset comprises eight placental samples, four from women diagnosed with GDM and four from healthy controls. The mean gestational age at the time of sampling was approximately `r mean(37.2,38.3,38.2,37.5)` weeks in the GDM group and `r mean(37.6,38.2,38.4,38.5)` weeks in the control group, indicating comparable gestational ages across groups. All samples were collected postpartum from placental tissue. A detailed description of the experimental protocol is available on the GEO dataset webpage.
+
+The aim of this analysis was to identify differentially expressed genes in the postpartum placenta between women who developed GDM and the control group. Furthermore, it was sought to investigate the biological processes associated with the significantly differentially expressed genes.
+
+***Data Overview:***
+
+-   **Sample size:** *n* = 4 (GDM) and *n* = 4 (Control)
+
+-   **Tissue source:** Placenta (collected postpartum)
+
+-   **Gestational age at sampling:** 37-38 weeks for both sampling groups
+
+-   **Sequencing platform:** Illumina HiSeq 4000
+
+### Data Analysis
+
+In the following sections, the data introduced above are analyzed. The workflow begins with preprocessing the data, preparing it for differential expression analysis (DEA). DEA is then carried out using the **DESeq2** package, and the results are further refined through genomic control and multiple testing adjustments. All analyses and visualizations were created using R (version 4.4.2).
+
+#### Data Preprocessing
+
+Required packages for the analyses:
+
+```{r message=FALSE, warning=FALSE}
+library(DESeq2)
+library(apeglm)
+library(qvalue)
+library(IHW)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(forcats)
+library(tidytext)  
+library(ggrepel)
+```
+
+In this section, the count data and metadata are loaded into the document. Relevant information from both data frames is merged into a single data frame, after which mild filtering is applied to the count data. The filtering is done by removing genes where the sum of counts across all samples is below seven. These genes are removed because they are statistically unreliable, and their removal minimizes the effects of multiple testing. In addition, a separate data frame is created to capture the sample information (GDM or control). These steps prepare the data for the DESeq2 procedure [@DESeq2].
+
+```{r message=FALSE, warning=FALSE}
+# Ensure correct directory
+setwd("C:/Users/carol/OneDrive/Skrivebord/independent_research")
+# getwd()
+
+# Load Count data:
+counts <- read.table("GSE154414_raw_counts_GRCh38.p13_NCBI.tsv.gz",
+                     header=TRUE, sep="\t", row.names=1)
+
+# Ensure counts is integers (for DESeq2)
+counts[] <- lapply(counts, as.integer)
+
+# Load meta data:
+annot <- read.table("Human.GRCh38.p13.annot.tsv.gz", 
+                    header=TRUE, sep="\t", quote="", comment.char="")
+
+# The count- and meta-data are merged into one dataframe
+counts_annot <- merge(annot, counts, by.x="GeneID", by.y="row.names")
+
+# Make a dataframe that descripes the sample-information (GDM or control)
+# colnames(counts)
+sample_info <- data.frame(
+  row.names = colnames(counts),
+  condition = factor(c("GDM","GDM","GDM","GDM","Control","Control","Control","Control"),
+                     levels = c("Control","GDM"))  # Control as reference
+)
+
+# Perform filtering
+keep <- rowSums(counts) >= 7
+counts_filt <- counts[keep, ]
+# sum(keep); dim(counts_filt)
+
+```
+
+#### Differential Expression Analysis using the DESeq2 Package
+
+In this section, DEA is performed on the count data using the DESeq2 package. This involves first creating a `dds` object and then running the *DESeq* function on that object. The log-fold changes (LFCs) obtained from DESeq2 are subsequently shrunk using *apeglm* to improve robustness and interpretability. Next, a variance-stabilizing transformation (VST) is applied to the `dds` object. The VST-transformed data is suitable for visualizations such as PCA plots [@LoveMichaelI2018]. Finally, the DESeq2 results are combined with relevant metadata into a new data frame for downstream analyses.
+
+```{r, message = FALSE, warning=FALSE}
+# Make dds objec for DESeq 
+# Condition : GDM or Control 
+dds <- DESeqDataSetFromMatrix(countData = counts_filt,
+                              colData = sample_info,
+                              design = ~ condition)
+
+# Perform DEA using DESeq on the dds object
+dds <- DESeq(dds)
+
+# Extract the results 
+# Control is baseline
+res <- results(dds, contrast = c("condition","GDM","Control"))  # GDM vs Control
+
+# Perform "apeglm" LFC shrinkage (Empirical Bayes Shrinkage) onto the LFC values
+res <- lfcShrink(dds, coef = "condition_GDM_vs_Control", type = "apeglm")
+
+# Order results with regard to the adjusted p-values
+res_ord <- res[order(res$padj), ]
+
+# Make the ordered matrix into a dataframe
+res_df <- as.data.frame(res_ord)
+
+# Creates a new column called "GeneID" and fills it with the rownames
+res_df$GeneID <- rownames(res_df)
+
+# Merge columns from the meta-data with the results dataframe by the "GeneID" column
+res_annot <- merge(annot[, c("GeneID", "EnsemblGeneID", "Symbol","GeneType", "Description")], res_df, by = "GeneID", all.y = TRUE)
+
+# A list of the top significant genes
+sig_res <- as.data.frame(subset(res_ord, padj < 0.05))
+
+# Transformed counts by vst-transformation
+vsd <- vst(dds, blind = FALSE)
+```
+
+Next, visualizations of the DESeq2 results are presented. For the PCA plot, the VST-transformed data was used. The PCA shows some separation between the groups, mainly along PC1, but also considerable variation within groups, making the distinction between them less clear ([@fig-PCA-plot]). This indicates that it may be difficult to identify strong candidate features that clearly separate the two groups in the data.
+
+```{r, message=FALSE, warning=FALSE, label = PCA_plot}
+#| label: fig-PCA-plot
+#| fig-cap: "PCA plot."
+
+# PCA plot
+plotPCA(vsd, intgroup = "condition", ntop = 500, pcsToUse = 1:2)
+```
+
+An MA-plot is also created, which demonstrates that many of the genes have LFC values close to zero, indicating no differential expression. In other words, most genes are not differentially expressed between the sample groups. The strongest signals are expected on the right side of the plot, where genes have higher expression levels and larger LFC valuesndefined ([@fig-MA-plot]). This suggests that there may be relevant candidates for distinguishing between the two groups, because significant genes are marked in this region. Confidence in these results is strengthened by the fact that shrinkage has been applied to the LFC values, making them re
+
+```{r, message=FALSE, warning=FALSE, label = MA_plot}
+#| label: fig-MA-plot
+#| fig-cap: "MA-Plot."
+
+# MA-Plots using the base means and the LFCs
+plotMA(res, alpha = 0.05, xlab = "Mean of Normalized Counts", ylab = "Log-Fold Change", colNonSig = "gray60", colSig = "red", colLine = "black")
+
+```
+
+#### Genomic Control
+
+Genomic Control recalibrates the test statistics and p-values under the assumption that the median of the test statistics is a trustworthy indicator of bias within the data. Genomic Control may be preferred if a technical bias is suspected. First, the p-value distribution is visualized to assess whether any unexpected patterns are present. In this context, the raw p-value distribution appears exceptionally well aligned with the theoretical expectation (right-skewed, peaking on the left and then followed by an almost perfectly uniform distribution) ([@fig-raw-pvalues]). It might therefore seem redundant to perform Genomic Control; however, it will be applied to ensure data integrity and to minimize potential influence from technical bias.
+
+```{r echo=FALSE, warning=FALSE, label = fig_raw_pvalues, fig.cap= "The distribution of raw p-values (horizontal line a y = 1)"}
+#| label: fig-raw-pvalues
+#| fig-cap: "Distribution of the raw p-values obtained from the DESeq2 analysis."
+
+p <- res$pvalue
+p <- p[!is.na(p)] # Remove NA's
+
+# make into df
+df_pvalue <- data.frame(p = p)
+
+ggplot(df_pvalue, aes(p)) +
+  geom_histogram(aes(y = ..density..), bins = 50, closed = "left") +
+  geom_hline(yintercept = 1, linetype = "dashed") +   # expected under null
+  xlim(0, 1) +
+  labs(x = "p-value", y = "Density")
+```
+
+Code for performing Genomic Control:
+
+```{r, message=FALSE, warning=FALSE}
+# Get the LFCs and SEs for each comparison
+betas <- res_annot$log2FoldChange
+ses <- res_annot$lfcSE
+    
+# Compute Wald statistics
+z_scores <- betas / ses
+# Chi-squared stats
+wald_stats <- z_scores^2
+    
+# Estimate genomic inflation factor (lambda)
+lambda_gc <- median(wald_stats, na.rm = TRUE) / qchisq(0.5, df = 1)  # ~0.456
+lambda_gc_vec <- lambda_gc  # Save inflation factor
+    
+# Adjust test stats
+GC_adjusted_test_statistics <- wald_stats / lambda_gc
+    
+# Recalculate p-values
+GC_adjusted_pvalues <- pchisq(GC_adjusted_test_statistics, df = 1, lower.tail = FALSE)
+
+# Make to dataframes
+GC_adjusted_test_statistics <- data.frame(GC_adjusted_test_statistics)
+GC_adjusted_pvalues <- data.frame(GC_adjusted_pvalues)
+
+# Bind to Big dataframe
+res_annot <- cbind(res_annot, GC_adjusted_test_statistics)
+res_annot <- cbind(res_annot, GC_adjusted_pvalues) 
+```
+
+A p-value distribution is again created, this time using genomic-control–adjusted p-values. The distribution shows a U-shaped pattern, indicating that genomic control overcorrected the p-values, as expected ([@fig-GC-pvalues]). Therefore, the GC-adjusted p-values and test statistics will not be used in further downstream analysis.
+
+```{r echo=FALSE, warning=FALSE, label = fig_GC_pvalues}
+#| label: fig-GC-pvalues
+#| fig-cap: "Distribution of the Genomically Controlled p-values." 
+
+p <- res_annot$GC_adjusted_pvalues
+p <- p[!is.na(p)] # Remove NA's
+
+# make into df
+df_pvalue_GC <- data.frame(p = p)
+
+ggplot(df_pvalue_GC, aes(p)) +
+  geom_histogram(aes(y = ..density..), bins = 50, closed = "left") +
+  geom_hline(yintercept = 1, linetype = "dashed") +   # expected under null
+  xlim(0, 1) +
+  labs(x = "GC p-value", y = "Density")
+```
+
+#### Multiple Testing Adjustment
+
+The DESeq2 package provides locally adjusted p-values using the Benjamini–Hochberg (BH) procedure. In addition, the raw p-values can be manually adjusted using several alternative methods, including Holm, the q-value method, and Independent Hypothesis Weighting (IHW). As these methods differ in their degree of conservatism, applying multiple approaches allows for a more comprehensive assessment of the most appropriate adjustment strategy for the dataset. The adjusted p-values are appended to the full data frame, `res_annot`.
+
+```{r, message=FALSE, warning=FALSE}
+# Holm (very conservative)
+res_annot$padj_Holm <- p.adjust(res_annot$pvalue, method = "holm")
+
+# Benjamini-Hochberg (less conservative)
+res_annot$padj_BH <- p.adjust(res_annot$pvalue, method = "BH")
+
+# Q-value (even less conservative)
+res_annot$padj_qvalue <- qvalue(res_annot$pvalue)$qvalues
+
+# IHW (most sophisticated)
+fit <- ihw(pvalues = res_annot$pvalue, covariates = res_annot$baseMean, alpha = 0.01)
+res_annot$padj_IHW <- adj_pvalues(fit)
+
+```
+
+The distributions of the adjusted p-values are visualized for two purposes: (1) to help select the most appropriate adjustment method for this exploratory study, and (2) to provide a clearer understanding of the statistical power in the data.
+
+In this case, the IHW method did not effectively make use of the covariate (*baseMean*) to distinguish true signal from noise, resulting in most tests being classified as non-significant and making the method overly conservative ([@fig-IHW]). By contrast, the q-value method identified a greater number of significant tests ([@fig-qvalue]). Given the exploratory nature of this study, the q-value method was selected, with the caveat that, given the limited sample size, it may increase the risk of false positives. The q-value method was preferred over the BH adjustment because it represents a more sophisticated approach.
+
+```{r, echo=FALSE, message=FALSE}
+plot_histogram <- function(data, column, bins = 50, title = NULL, xlab = NULL, color = "skyblue") {
+  # Ensure column exists
+  if (!column %in% names(data)) {
+    stop("Column not found in the data frame")
+  }
+  
+  # Extract the column
+  values <- data[[column]]
+  
+  # Plot histogram
+  hist(values,
+       breaks = bins,
+       main = ifelse(is.null(title), NULL, title),
+       xlab = ifelse(is.null(xlab), column, xlab),
+       col = color,
+       border = "white")
+}
+```
+
+::: panel-tabset
+### Holm
+
+```{r}
+#| label: fig-holm
+#| fig-cap: "Distribution of the Holm adjusted p-values."
+plot_histogram(res_annot, "padj_Holm", color = "orange", title = "")
+```
+
+### BH
+
+```{r}
+#| label: fig-BH
+#| fig-cap: "Distribution of the Benjamini-Hochberg (BH) adjusted p-values."
+plot_histogram(res_annot, "padj_BH", color = "purple", title = "")
+```
+
+### qvalue
+
+```{r}
+#| label: fig-qvalue
+#| fig-cap: "Distribution of the qvalue adjusted p-values."
+plot_histogram(res_annot, "padj_qvalue", color = "pink", title = "")
+```
+
+### IHW
+
+```{r}
+#| label: fig-IHW
+#| fig-cap: "Distribution of the Independent Hypothesis Weighting (IHW) adjusted p-values."
+plot_histogram(res_annot, "padj_IHW", color = "limegreen", title = "")
+
+```
+:::
+
+### Visualizations of the Results
+
+In this section, the results from the DESeq2 analysis are visualized using q-value–adjusted p-values. The aim is to highlight genes that appear to be significantly differentially expressed between the two groups (GDM and control) and to explore their potential biological relevance.
+
+Prior to visualization, a data frame was prepared in which rows with missing q-values were removed. Such missing values typically arise when a gene has insufficient information (e.g., very low counts or extreme dispersion), preventing the computation of a reliable adjusted p-value. Although these genes could, in principle, be of biological interest, the limited sample size or high level of noise in the data renders their statistical evidence too unreliable for interpretation in this context [@DESeq2].
+
+```{r, message=FALSE, warning=FALSE}
+# dataframe for visualizations
+df_visual <- res_annot |> select(GeneID, EnsemblGeneID, baseMean, log2FoldChange, lfcSE, pvalue, padj_qvalue, Description)
+
+# Remove all rows where padj_qvalue is NA
+df_visual <- df_visual[!is.na(df_visual$padj_qvalue), ]
+```
+
+A volcano plot was generated with the LFC on the x-axis and the statistical significance on the y-axis. The 15 most significant genes were labeled directly on the plot for ease of interpretation. Among these, the gene *ENSG00000161634* appears to be of particular interest ([@fig-volcanoplot]).
+
+```{r, echo=FALSE}
+volcano_plot <- function(
+  df,
+  lfc_col = "log2FoldChange",
+  p_col   = "padj_qvalue",     
+  fallback_p_col = "pvalue",   
+  label_col = "EnsemblGeneID", # gene label 
+  lfc_thresh = 1,              
+  p_thresh   = 0.05,           # significance
+  top_n      = 15,             # label 
+  point_size = 1.8
+){
+  stopifnot(lfc_col %in% names(df))
+
+  # Picking P-values
+  use_p <- df[[p_col]]
+  if (all(is.na(use_p)) && !is.null(fallback_p_col) && fallback_p_col %in% names(df)) {
+    message("All values in '", p_col, "' are NA. Falling back to '", fallback_p_col, "'.")
+    use_p <- df[[fallback_p_col]]
+  }
+
+  # assemble tibble
+  dat <- df %>%
+    mutate(
+      .lfc = .data[[lfc_col]],
+      .p   = use_p,
+      .neglog10p = -log10(.p),
+      status = case_when(
+        !is.na(.p) & .p < p_thresh & .lfc >=  lfc_thresh ~ "Up",
+        !is.na(.p) & .p < p_thresh & .lfc <= -lfc_thresh ~ "Down",
+        TRUE ~ "Unchanged"
+      )
+    )
+
+  # Address label to points
+  lab_dat <- dat %>%
+    filter(status %in% c("Up","Down")) %>%
+    arrange(desc(.neglog10p)) %>%
+    slice_head(n = top_n)
+
+  p <- ggplot(dat, aes(x = .lfc, y = .neglog10p, color = status)) +
+    geom_point(alpha = 0.8, size = point_size, na.rm = TRUE) +
+    geom_vline(xintercept = c(-lfc_thresh, lfc_thresh), linetype = "dashed") +
+    geom_hline(yintercept = -log10(p_thresh), linetype = "dashed") +
+    scale_color_manual(values = c("Down"="#2b6cb0","Unchanged"="grey60","Up"="#e53e3e")) +
+    labs(
+      x = "LFC",
+      y = expression(-log[10](adj.p-value)),
+      color = "LFC"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "right")
+
+  # add labels
+  if (label_col %in% names(df) && nrow(lab_dat) > 0) {
+    lab_dat$label_text <- df[[label_col]][match(lab_dat$.p, use_p)]
+    p <- p + geom_label_repel(
+      data = lab_dat,
+      aes(label = .data[[label_col]]),
+      size = 3,
+      label.size = 0.2,
+      max.overlaps = Inf,
+      box.padding = 0.3,
+      min.segment.length = 0
+    )
+  }
+
+  return(p)
+}
+```
+
+```{r, echo=FALSE}
+#| label: fig-volcanoplot
+#| fig-cap: "Volcano plot demonstrating the relationship between Log-fold change and level of significance. The top 15 most significant genes are labelled." 
+
+p <- volcano_plot(
+  df_visual,
+  lfc_col   = "log2FoldChange",
+  p_col     = "padj_qvalue",     # q-value is used
+  fallback_p_col = "pvalue",     # if no q-value is present
+  label_col = "EnsemblGeneID",   # "GeneID" or "Description" can also be inserted
+  lfc_thresh = 1,
+  p_thresh   = 0.05,
+  top_n      = 15
+)
+p
+
+# Save to file
+ggsave("volcano_plot.png", p, width = 7, height = 6, dpi = 300)
+```
+
+In this figure the top 15 up- and down-regulated genes are listed according to their level of LFC. The dot appointed at each gene marks their level of significance by the adjusted p-value. The three genes with the lowest LFC and the *ENSG00000240567* gene (high significance), are of particular interest in relation to the down-regulated genes. The three genes with the highest LFC are of particular interest concerning the up-regulated genes ([@fig-top-LFC]).
+
+```{r, echo=FALSE}
+top_lfc_lollipop <- function(
+  df,
+  lfc_col = "log2FoldChange",
+  desc_col = "Description",       
+  p_col   = "padj_qvalue",        
+  n = 15,                         
+  wrap_width = 35,                
+  show_fill_by_significance = TRUE
+){
+  stopifnot(lfc_col %in% names(df), desc_col %in% names(df))
+
+  # p-values
+  p_use <- if (p_col %in% names(df)) df[[p_col]] else NA_real_
+
+  dat <- df %>%
+    mutate(
+      .lfc  = .data[[lfc_col]],
+      .desc = str_trim(.data[[desc_col]]),
+      .desc = ifelse(.desc == "" | is.na(.desc), as.character(row_number()), .desc),
+      .p    = p_use,
+      .ml10p = -log10(.p)
+    )
+
+  top_up <- dat %>%
+    filter(.lfc > 0) %>%
+    slice_max(order_by = .lfc, n = n, with_ties = FALSE) %>%
+    mutate(direction = "Up")
+
+  top_down <- dat %>%
+    filter(.lfc < 0) %>%
+    slice_min(order_by = .lfc, n = n, with_ties = FALSE) %>%
+    mutate(direction = "Down")
+
+  top_dat <- bind_rows(top_up, top_down) %>%
+    mutate(
+      desc_wrapped = str_wrap(.desc, width = wrap_width),
+      # order within facet 
+      desc_faceted = reorder_within(desc_wrapped, .lfc, direction)
+    )
+
+  p <- ggplot(top_dat, aes(x = .lfc, y = desc_faceted, color = direction)) +
+    # stems
+    geom_segment(aes(x = 0, xend = .lfc, y = desc_faceted, yend = desc_faceted),
+                 linewidth = 0.6, alpha = 0.6) +
+    # heads
+    geom_point(aes(size = if (show_fill_by_significance) .ml10p else NULL),
+               alpha = 0.9) +
+    facet_wrap(~ direction, scales = "free_y") +
+    scale_y_reordered() +
+    scale_color_manual(values = c("Down" = "#2b6cb0", "Up" = "#e53e3e")) +
+    scale_size_continuous(name = expression(-log[10](adj.~p)), range = c(1.5, 4.5)) +
+    labs(
+      x = "LFC",
+      y = NULL,
+      subtitle = if (show_fill_by_significance && p_col %in% names(df))
+        paste0("Point size encodes −log10(", p_col, ")") else NULL,
+      color = "Direction"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      legend.position = if (show_fill_by_significance) "right" else "none",
+      panel.grid.major.y = element_blank()
+    )
+
+  return(p)
+}
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+#| label: fig-top-LFC
+#| fig-cap: "The 30 most down- and upregulated genes according to their LFC value, and their associated significance (dot-size)."
+
+p <- top_lfc_lollipop(
+  df_visual,
+  lfc_col = "log2FoldChange",
+  desc_col = "EnsemblGeneID",
+  p_col   = "padj_qvalue",  
+  n = 15
+)
+p
+
+ggsave("top_lfc_lollipop.png", p, width = 9, height = 6, dpi = 300)
+```
+
+The normalized counts for the genes of particular interest were visualized, to demonstrate the difference between the GDM and control group. From the visualization especially gene *ENSG00000161634* and *ENSG00000110484* seem to be of interest, I will refer to them as gene *dermicidin* and *LINC02067* (both names were obtained from the metadata,). The expression of dermicidin demonstrates very clear intervariability (variation between groups) and very low intravariability (variation within group) ([@fig-dermicidin]). For LINC02067 the intravariability is a bit higher for the control group, in comparison to dermicidin, but the intervariability is still very clear. Especially the normalized counts for the GDM group for LINC02067 are very close togetherndefined ([@fig-LINC]). This suggests that dermicidin and LINC02067 are down-regulated in the GDM group compared with the control group in the postpartum placenta.
+
+::::: panel-tabset
+### Down-regulated
+
+::: panel-tabset
+##### ENSG00000161634 — Dermicidin
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-dermicidin
+plotCounts(dds, "117159", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene: ENSG00000161634 (Dermicidin)",
+           xlab = "Group")
+```
+
+##### ENSG00000110484 — SCGB2A2
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+plotCounts(dds, "3852", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene:  ENSG00000110484 (secretoglobin family 2A member 2)",
+           xlab = "Group")
+```
+
+##### ENSG00000186081 — Keratin 5
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+plotCounts(dds, "3852", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene: ENSG00000186081 (keratin 5)",
+           xlab = "Group")
+```
+
+##### ENSG00000240567 — LINC02067
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-LINC02067
+plotCounts(dds, "4250", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene: ENSG00000240567 (long intergenic non-protein coding | 2067)",
+           xlab = "Group")
+```
+:::
+
+### Up-regulated
+
+::: panel-tabset
+##### ENSG00000101938 — CHRDL1
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+plotCounts(dds, "91851", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene: ENSG00000101938 (Chordin like 1)",
+           xlab = "Group")
+```
+
+##### ENSG00000122133 — PAEP
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+plotCounts(dds, "5047", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene: ENSG00000122133 (progestagen associated endometrial protein)",
+           xlab = "Group")
+```
+
+##### ENSG00000162882 — HAAO
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+plotCounts(dds, "23498", intgroup = "condition",
+           normalized = TRUE, transform = TRUE,
+           main = "Gene: ENSG00000162882 (3-hydroxyanthranilate 3,4-dioxygenase)",
+           xlab = "Group")
+```
+:::
+:::::
+
+This visualization provides an overview of the results generated in this analysis. It displays the 16 genes with the highest LFC values, along with their GeneIDs/Ensembl GeneIDs and a corresponding description. The fill color of the bars indicates the level of significance. The plot highlights ENSG00000161634 (dermicidin) and ENSG00000240567 (LINC02067) as particularly noteworthy, especially compared with the other genes that have high LFC values ([@fig-full]).
+
+```{r, echo=FALSE}
+df_top <- df_visual |> arrange(log2FoldChange) 
+df_top <- df_top[1:8, ]
+
+df_bottom <- df_visual |> arrange(desc(log2FoldChange)) 
+df_bottom <- df_bottom[1:8, ]
+
+df_top_16_LFC <- bind_rows(df_top, df_bottom)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+#| label: fig-full
+#| fig-cap: "Demonstrating the genes with the eight lowest and eight highest LFC values, and their associated description. The fill of the bars indicate their level of significance."
+#| warning: false
+
+df <- df_top_16_LFC
+
+# ---- prep ----
+df$ID_left <- ifelse(!is.na(df$EnsemblGeneID) & nzchar(df$EnsemblGeneID),
+                     df$EnsemblGeneID, df$GeneID)
+
+df$Significant <- !is.na(df$padj_qvalue) & df$padj_qvalue < 0.05
+df$Direction   <- ifelse(df$log2FoldChange >= 0, "Up", "Down")
+
+# show bars ordered by LFC
+df$GeneID <- factor(df$GeneID, levels = df$GeneID[order(df$log2FoldChange)])
+
+# wrap long descriptions (base R; always returns one string per row)
+wrap_one <- function(s, width = 40) paste(strwrap(as.character(s), width = width), collapse = "\n")
+df$Description_wrapped <- vapply(df$Description, wrap_one, character(1), width = 40)
+
+# padding for side labels
+x_min <- min(df$log2FoldChange, na.rm = TRUE)
+x_max <- max(df$log2FoldChange, na.rm = TRUE)
+pad   <- 0.08 * (x_max - x_min)
+
+# ---- plot ----
+
+# Continuous column for p-val
+df$neglog10_padj_qvalue <- ifelse(is.na(df$padj_qvalue), NA_real_, -log10(df$padj_qvalue))
+
+p <- ggplot(df, aes(y = GeneID, x = log2FoldChange)) +
+  # bars: height = LFC; fill = significance; outline = direction
+  geom_col(aes(fill = neglog10_padj_qvalue, color = Direction), width = 0.7) +
+  scale_color_manual(values = c(Down = "blue", Up = "red")) +
+  scale_fill_gradient(
+    name = "-log10(adj. p)",
+    low = "white", high = "grey30", na.value = "white"
+  ) +
+
+  # left IDs and right descriptions
+  geom_text(aes(y = GeneID, x = x_min - pad, label = ID_left),
+            hjust = 1, size = 3, inherit.aes = FALSE) +
+  geom_text(aes(y = GeneID, x = x_max + pad, label = Description_wrapped),
+            hjust = 0, size = 3, inherit.aes = FALSE) +
+
+  # space for side labels
+  scale_x_continuous(limits = c(x_min - 1.8*pad, x_max + 1.8*pad),
+                     position = "top") +
+  labs(x = "LFC", y = NULL,
+       color = "Direction") +
+
+  coord_flip() +
+  coord_cartesian(clip = "off") +  
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    axis.text.y  = element_blank(),   
+    axis.ticks.y = element_blank(),
+    plot.margin = margin(10, 90, 10, 90),  
+    legend.position = "bottom"
+  )
+
+p
+
+suppressWarnings(ggsave("top_16_LFC_with_Genes_and_Description.png", p, width = 9, height = 6, dpi = 300))
+```
+
+### Discussion & Conclusion
+
+The analysis identified two genes that appear to be significantly differentially expressed between the GDM and control groups. These findings are clearly illustrated in ([@fig-dermicidin]) and ([@fig-LINC02067]). One of these genes, **ENSG00000161634 (dermicidin)**, encodes a secreted protein with two major functional domains: (1) a C-terminal peptide with antimicrobial properties, and (2) an N-terminal peptide that promotes neural cell survival under conditions of severe oxidative stress [@NCBIGene117159]. This finding is particularly relevant given that GDM has been strongly associated with increased oxidative stress, suggesting that dermicidin and its protein products may represent potential biomarkers for GDM[@Saucedo2023].
+
+Another gene of potential interest is ENSG00000240567 (LINC02067), which appears to be differentially expressed between the GDM and control groups. This gene encodes a long intergenic non-protein coding RNA (lincRNA) and therefore does not produce a protein [@NCBIGene101243545]. Although its specific function has not been described in the literature, its differential expression suggests that it may still be biologically relevant and could serve as a potential biomarker.
+
+This analysis uncovered several potentially relevant genes. However, the limited sample size likely reduced statistical power, such that only very strong signals could be detected with confidence. Future studies employing larger datasets will be valuable for validating these findings. Moreover, longitudinal datasets that include samples from different stages of gestation could provide important insights into how molecular profiles change over time and how these changes are influenced by GDM. Such data would help disentangle gestational age-related variation from disease-specific effects, thereby clarifying the true molecular signature of GDM.

@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="author" content="Carolina Ferreira Jørgensen, MSc in Bioinformatics">
+<title>Differential Gene Expression in Placental Tissue from Women with and without Gestational Diabetes Mellitus</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+<script src="diffExGenesGDMPlacenta_files/libs/clipboard/clipboard.min.js"></script>
+<script src="diffExGenesGDMPlacenta_files/libs/quarto-html/quarto.js"></script>
+<script src="diffExGenesGDMPlacenta_files/libs/quarto-html/popper.min.js"></script>
+<script src="diffExGenesGDMPlacenta_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="diffExGenesGDMPlacenta_files/libs/quarto-html/anchor.min.js"></script>
+<link href="diffExGenesGDMPlacenta_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<script src="diffExGenesGDMPlacenta_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="diffExGenesGDMPlacenta_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="diffExGenesGDMPlacenta_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="diffExGenesGDMPlacenta_files/libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+</head>
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li>
+<a href="#data-analysis" id="toc-data-analysis" class="nav-link" data-scroll-target="#data-analysis">Data Analysis</a>
+  <ul>
+<li><a href="#data-preprocessing" id="toc-data-preprocessing" class="nav-link" data-scroll-target="#data-preprocessing">Data Preprocessing</a></li>
+  <li><a href="#differential-expression-analysis-using-the-deseq2-package" id="toc-differential-expression-analysis-using-the-deseq2-package" class="nav-link" data-scroll-target="#differential-expression-analysis-using-the-deseq2-package">Differential Expression Analysis using the DESeq2 Package</a></li>
+  <li><a href="#genomic-control" id="toc-genomic-control" class="nav-link" data-scroll-target="#genomic-control">Genomic Control</a></li>
+  <li><a href="#multiple-testing-adjustment" id="toc-multiple-testing-adjustment" class="nav-link" data-scroll-target="#multiple-testing-adjustment">Multiple Testing Adjustment</a></li>
+  </ul>
+</li>
+  <li><a href="#visualizations-of-the-results" id="toc-visualizations-of-the-results" class="nav-link" data-scroll-target="#visualizations-of-the-results">Visualizations of the Results</a></li>
+  <li><a href="#discussion-conclusion" id="toc-discussion-conclusion" class="nav-link" data-scroll-target="#discussion-conclusion">Discussion &amp; Conclusion</a></li>
+  </ul></nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+</div>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Differential Gene Expression in Placental Tissue from Women with and without Gestational Diabetes Mellitus</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Carolina Ferreira Jørgensen, MSc in Bioinformatics </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header><p><img src="images/photo.jpg" class="img-fluid" width="117"></p>
+<section id="introduction" class="level3"><h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>Gestational diabetes mellitus (GDM) is among the most common complications of pregnancy, yet it remains frequently underdiagnosed. The condition is associated with increased risks of adverse outcomes for both mother and child, including the later development of type 2 diabetes and obesity. Identifying biomarkers that distinguish women who develop GDM from those who do not is therefore of considerable interest, as such markers could provide insights into the underlying pathophysiology of GDM and may also serve as predictive indicators to enable timely intervention <span class="citation" data-cites="McIntyre2019">(<a href="#ref-McIntyre2019" role="doc-biblioref">McIntyre et al. 2019</a>)</span>.</p>
+<p>This study utilized publicly available RNA sequencing data entitled <em>“RNA sequence of gestational diabetes mellitus (GDM) and healthy control placentas”</em>, obtained from the NCBI Gene Expression Omnibus (GEO) database <span class="citation" data-cites="GSE154414">(<a href="#ref-GSE154414" role="doc-biblioref">Wang and H 2021-12-31</a>)</span>. The dataset comprises eight placental samples, four from women diagnosed with GDM and four from healthy controls. The mean gestational age at the time of sampling was approximately 37.2 weeks in the GDM group and 37.6 weeks in the control group, indicating comparable gestational ages across groups. All samples were collected postpartum from placental tissue. A detailed description of the experimental protocol is available on the GEO dataset webpage.</p>
+<p>The aim of this analysis was to identify differentially expressed genes in the postpartum placenta between women who developed GDM and the control group. Furthermore, it was sought to investigate the biological processes associated with the significantly differentially expressed genes.</p>
+<p><strong><em>Data Overview:</em></strong></p>
+<ul>
+<li><p><strong>Sample size:</strong> <em>n</em> = 4 (GDM) and <em>n</em> = 4 (Control)</p></li>
+<li><p><strong>Tissue source:</strong> Placenta (collected postpartum)</p></li>
+<li><p><strong>Gestational age at sampling:</strong> 37-38 weeks for both sampling groups</p></li>
+<li><p><strong>Sequencing platform:</strong> Illumina HiSeq 4000</p></li>
+</ul></section><section id="data-analysis" class="level3"><h3 class="anchored" data-anchor-id="data-analysis">Data Analysis</h3>
+<p>In the following sections, the data introduced above are analyzed. The workflow begins with preprocessing the data, preparing it for differential expression analysis (DEA). DEA is then carried out using the <strong>DESeq2</strong> package, and the results are further refined through genomic control and multiple testing adjustments. All analyses and visualizations were created using R (version 4.4.2).</p>
+<section id="data-preprocessing" class="level4"><h4 class="anchored" data-anchor-id="data-preprocessing">Data Preprocessing</h4>
+<p>Required packages for the analyses:</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/thelovelab/DESeq2">DESeq2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">apeglm</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/jdstorey/qvalue">qvalue</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">IHW</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org">stringr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://forcats.tidyverse.org/">forcats</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://juliasilge.github.io/tidytext/">tidytext</a></span><span class="op">)</span>  </span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggrepel.slowkow.com/">ggrepel</a></span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>In this section, the count data and metadata are loaded into the document. Relevant information from both data frames is merged into a single data frame, after which mild filtering is applied to the count data. The filtering is done by removing genes where the sum of counts across all samples is below seven. These genes are removed because they are statistically unreliable, and their removal minimizes the effects of multiple testing. In addition, a separate data frame is created to capture the sample information (GDM or control). These steps prepare the data for the DESeq2 procedure <span class="citation" data-cites="DESeq2">(<a href="#ref-DESeq2" role="doc-biblioref">Love, Huber, and Anders 2014</a>)</span>.</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Ensure correct directory</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html">setwd</a></span><span class="op">(</span><span class="st">"C:/Users/carol/OneDrive/Skrivebord/independent_research"</span><span class="op">)</span></span>
+<span><span class="co"># getwd()</span></span>
+<span></span>
+<span><span class="co"># Load Count data:</span></span>
+<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"GSE154414_raw_counts_GRCh38.p13_NCBI.tsv.gz"</span>,</span>
+<span>                     header<span class="op">=</span><span class="cn">TRUE</span>, sep<span class="op">=</span><span class="st">"\t"</span>, row.names<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Ensure counts is integers (for DESeq2)</span></span>
+<span><span class="va">counts</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">counts</span>, <span class="va">as.integer</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Load meta data:</span></span>
+<span><span class="va">annot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"Human.GRCh38.p13.annot.tsv.gz"</span>, </span>
+<span>                    header<span class="op">=</span><span class="cn">TRUE</span>, sep<span class="op">=</span><span class="st">"\t"</span>, quote<span class="op">=</span><span class="st">""</span>, comment.char<span class="op">=</span><span class="st">""</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># The count- and meta-data are merged into one dataframe</span></span>
+<span><span class="va">counts_annot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Vector-merge.html">merge</a></span><span class="op">(</span><span class="va">annot</span>, <span class="va">counts</span>, by.x<span class="op">=</span><span class="st">"GeneID"</span>, by.y<span class="op">=</span><span class="st">"row.names"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Make a dataframe that descripes the sample-information (GDM or control)</span></span>
+<span><span class="co"># colnames(counts)</span></span>
+<span><span class="va">sample_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>  row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span>,</span>
+<span>  condition <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"GDM"</span>,<span class="st">"GDM"</span>,<span class="st">"GDM"</span>,<span class="st">"GDM"</span>,<span class="st">"Control"</span>,<span class="st">"Control"</span>,<span class="st">"Control"</span>,<span class="st">"Control"</span><span class="op">)</span>,</span>
+<span>                     levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Control"</span>,<span class="st">"GDM"</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Control as reference</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Perform filtering</span></span>
+<span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">7</span></span>
+<span><span class="va">counts_filt</span> <span class="op">&lt;-</span> <span class="va">counts</span><span class="op">[</span><span class="va">keep</span>, <span class="op">]</span></span>
+<span><span class="co"># sum(keep); dim(counts_filt)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section><section id="differential-expression-analysis-using-the-deseq2-package" class="level4"><h4 class="anchored" data-anchor-id="differential-expression-analysis-using-the-deseq2-package">Differential Expression Analysis using the DESeq2 Package</h4>
+<p>In this section, DEA is performed on the count data using the DESeq2 package. This involves first creating a <code>dds</code> object and then running the <em>DESeq</em> function on that object. The log-fold changes (LFCs) obtained from DESeq2 are subsequently shrunk using <em>apeglm</em> to improve robustness and interpretability. Next, a variance-stabilizing transformation (VST) is applied to the <code>dds</code> object. The VST-transformed data is suitable for visualizations such as PCA plots <span class="citation" data-cites="LoveMichaelI2018">(<a href="#ref-LoveMichaelI2018" role="doc-biblioref">Love, Michael I, Zhu, Anqi, and Ibrahim, Joseph G 2018</a>)</span>. Finally, the DESeq2 results are combined with relevant metadata into a new data frame for downstream analyses.</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Make dds objec for DESeq </span></span>
+<span><span class="co"># Condition : GDM or Control </span></span>
+<span><span class="va">dds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeqDataSet.html">DESeqDataSetFromMatrix</a></span><span class="op">(</span>countData <span class="op">=</span> <span class="va">counts_filt</span>,</span>
+<span>                              colData <span class="op">=</span> <span class="va">sample_info</span>,</span>
+<span>                              design <span class="op">=</span> <span class="op">~</span> <span class="va">condition</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Perform DEA using DESeq on the dds object</span></span>
+<span><span class="va">dds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeq.html">DESeq</a></span><span class="op">(</span><span class="va">dds</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract the results </span></span>
+<span><span class="co"># Control is baseline</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/results.html">results</a></span><span class="op">(</span><span class="va">dds</span>, contrast <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"condition"</span>,<span class="st">"GDM"</span>,<span class="st">"Control"</span><span class="op">)</span><span class="op">)</span>  <span class="co"># GDM vs Control</span></span>
+<span></span>
+<span><span class="co"># Perform "apeglm" LFC shrinkage (Empirical Bayes Shrinkage) onto the LFC values</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/lfcShrink.html">lfcShrink</a></span><span class="op">(</span><span class="va">dds</span>, coef <span class="op">=</span> <span class="st">"condition_GDM_vs_Control"</span>, type <span class="op">=</span> <span class="st">"apeglm"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Order results with regard to the adjusted p-values</span></span>
+<span><span class="va">res_ord</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">padj</span><span class="op">)</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Make the ordered matrix into a dataframe</span></span>
+<span><span class="va">res_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">res_ord</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Creates a new column called "GeneID" and fills it with the rownames</span></span>
+<span><span class="va">res_df</span><span class="op">$</span><span class="va">GeneID</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">res_df</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Merge columns from the meta-data with the results dataframe by the "GeneID" column</span></span>
+<span><span class="va">res_annot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Vector-merge.html">merge</a></span><span class="op">(</span><span class="va">annot</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"GeneID"</span>, <span class="st">"EnsemblGeneID"</span>, <span class="st">"Symbol"</span>,<span class="st">"GeneType"</span>, <span class="st">"Description"</span><span class="op">)</span><span class="op">]</span>, <span class="va">res_df</span>, by <span class="op">=</span> <span class="st">"GeneID"</span>, all.y <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># A list of the top significant genes</span></span>
+<span><span class="va">sig_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">res_ord</span>, <span class="va">padj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Transformed counts by vst-transformation</span></span>
+<span><span class="va">vsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/vst.html">vst</a></span><span class="op">(</span><span class="va">dds</span>, blind <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Next, visualizations of the DESeq2 results are presented. For the PCA plot, the VST-transformed data was used. The PCA shows some separation between the groups, mainly along PC1, but also considerable variation within groups, making the distinction between them less clear (<a href="#fig-PCA-plot" class="quarto-xref">Figure&nbsp;1</a>). This indicates that it may be difficult to identify strong candidate features that clearly separate the two groups in the data.</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># PCA plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html">plotPCA</a></span><span class="op">(</span><span class="va">vsd</span>, intgroup <span class="op">=</span> <span class="st">"condition"</span>, ntop <span class="op">=</span> <span class="fl">500</span>, pcsToUse <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<div id="fig-PCA-plot" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-PCA-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-PCA-plot-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-PCA-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: PCA plot.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>An MA-plot is also created, which demonstrates that many of the genes have LFC values close to zero, indicating no differential expression. In other words, most genes are not differentially expressed between the sample groups. The strongest signals are expected on the right side of the plot, where genes have higher expression levels and larger LFC valuesndefined (<a href="#fig-MA-plot" class="quarto-xref">Figure&nbsp;2</a>). This suggests that there may be relevant candidates for distinguishing between the two groups, because significant genes are marked in this region. Confidence in these results is strengthened by the fact that shrinkage has been applied to the LFC values, making them re</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># MA-Plots using the base means and the LFCs</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotMA.html">plotMA</a></span><span class="op">(</span><span class="va">res</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, xlab <span class="op">=</span> <span class="st">"Mean of Normalized Counts"</span>, ylab <span class="op">=</span> <span class="st">"Log-Fold Change"</span>, colNonSig <span class="op">=</span> <span class="st">"gray60"</span>, colSig <span class="op">=</span> <span class="st">"red"</span>, colLine <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<div id="fig-MA-plot" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-MA-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-MA-plot-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-MA-plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: MA-Plot.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</section><section id="genomic-control" class="level4"><h4 class="anchored" data-anchor-id="genomic-control">Genomic Control</h4>
+<p>Genomic Control recalibrates the test statistics and p-values under the assumption that the median of the test statistics is a trustworthy indicator of bias within the data. Genomic Control may be preferred if a technical bias is suspected. First, the p-value distribution is visualized to assess whether any unexpected patterns are present. In this context, the raw p-value distribution appears exceptionally well aligned with the theoretical expectation (right-skewed, peaking on the left and then followed by an almost perfectly uniform distribution) (<a href="#fig-raw-pvalues" class="quarto-xref">Figure&nbsp;3</a>). It might therefore seem redundant to perform Genomic Control; however, it will be applied to ensure data integrity and to minimize potential influence from technical bias.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-raw-pvalues" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-raw-pvalues-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-raw-pvalues-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raw-pvalues-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Distribution of the raw p-values obtained from the DESeq2 analysis.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>Code for performing Genomic Control:</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Get the LFCs and SEs for each comparison</span></span>
+<span><span class="va">betas</span> <span class="op">&lt;-</span> <span class="va">res_annot</span><span class="op">$</span><span class="va">log2FoldChange</span></span>
+<span><span class="va">ses</span> <span class="op">&lt;-</span> <span class="va">res_annot</span><span class="op">$</span><span class="va">lfcSE</span></span>
+<span>    </span>
+<span><span class="co"># Compute Wald statistics</span></span>
+<span><span class="va">z_scores</span> <span class="op">&lt;-</span> <span class="va">betas</span> <span class="op">/</span> <span class="va">ses</span></span>
+<span><span class="co"># Chi-squared stats</span></span>
+<span><span class="va">wald_stats</span> <span class="op">&lt;-</span> <span class="va">z_scores</span><span class="op">^</span><span class="fl">2</span></span>
+<span>    </span>
+<span><span class="co"># Estimate genomic inflation factor (lambda)</span></span>
+<span><span class="va">lambda_gc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">wald_stats</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/Chisquare.html">qchisq</a></span><span class="op">(</span><span class="fl">0.5</span>, df <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>  <span class="co"># ~0.456</span></span>
+<span><span class="va">lambda_gc_vec</span> <span class="op">&lt;-</span> <span class="va">lambda_gc</span>  <span class="co"># Save inflation factor</span></span>
+<span>    </span>
+<span><span class="co"># Adjust test stats</span></span>
+<span><span class="va">GC_adjusted_test_statistics</span> <span class="op">&lt;-</span> <span class="va">wald_stats</span> <span class="op">/</span> <span class="va">lambda_gc</span></span>
+<span>    </span>
+<span><span class="co"># Recalculate p-values</span></span>
+<span><span class="va">GC_adjusted_pvalues</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Chisquare.html">pchisq</a></span><span class="op">(</span><span class="va">GC_adjusted_test_statistics</span>, df <span class="op">=</span> <span class="fl">1</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Make to dataframes</span></span>
+<span><span class="va">GC_adjusted_test_statistics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">GC_adjusted_test_statistics</span><span class="op">)</span></span>
+<span><span class="va">GC_adjusted_pvalues</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">GC_adjusted_pvalues</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Bind to Big dataframe</span></span>
+<span><span class="va">res_annot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">res_annot</span>, <span class="va">GC_adjusted_test_statistics</span><span class="op">)</span></span>
+<span><span class="va">res_annot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">res_annot</span>, <span class="va">GC_adjusted_pvalues</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A p-value distribution is again created, this time using genomic-control–adjusted p-values. The distribution shows a U-shaped pattern, indicating that genomic control overcorrected the p-values, as expected (<a href="#fig-GC-pvalues" class="quarto-xref">Figure&nbsp;4</a>). Therefore, the GC-adjusted p-values and test statistics will not be used in further downstream analysis.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-GC-pvalues" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-GC-pvalues-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-GC-pvalues-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-GC-pvalues-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Distribution of the Genomically Controlled p-values.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</section><section id="multiple-testing-adjustment" class="level4"><h4 class="anchored" data-anchor-id="multiple-testing-adjustment">Multiple Testing Adjustment</h4>
+<p>The DESeq2 package provides locally adjusted p-values using the Benjamini–Hochberg (BH) procedure. In addition, the raw p-values can be manually adjusted using several alternative methods, including Holm, the q-value method, and Independent Hypothesis Weighting (IHW). As these methods differ in their degree of conservatism, applying multiple approaches allows for a more comprehensive assessment of the most appropriate adjustment strategy for the dataset. The adjusted p-values are appended to the full data frame, <code>res_annot</code>.</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Holm (very conservative)</span></span>
+<span><span class="va">res_annot</span><span class="op">$</span><span class="va">padj_Holm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">res_annot</span><span class="op">$</span><span class="va">pvalue</span>, method <span class="op">=</span> <span class="st">"holm"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Benjamini-Hochberg (less conservative)</span></span>
+<span><span class="va">res_annot</span><span class="op">$</span><span class="va">padj_BH</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">res_annot</span><span class="op">$</span><span class="va">pvalue</span>, method <span class="op">=</span> <span class="st">"BH"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Q-value (even less conservative)</span></span>
+<span><span class="va">res_annot</span><span class="op">$</span><span class="va">padj_qvalue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qvalue/man/qvalue.html">qvalue</a></span><span class="op">(</span><span class="va">res_annot</span><span class="op">$</span><span class="va">pvalue</span><span class="op">)</span><span class="op">$</span><span class="va">qvalues</span></span>
+<span></span>
+<span><span class="co"># IHW (most sophisticated)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/IHW/man/ihw.default.html">ihw</a></span><span class="op">(</span>pvalues <span class="op">=</span> <span class="va">res_annot</span><span class="op">$</span><span class="va">pvalue</span>, covariates <span class="op">=</span> <span class="va">res_annot</span><span class="op">$</span><span class="va">baseMean</span>, alpha <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="va">res_annot</span><span class="op">$</span><span class="va">padj_IHW</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/IHW/man/ihwResult-class.html">adj_pvalues</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>The distributions of the adjusted p-values are visualized for two purposes: (1) to help select the most appropriate adjustment method for this exploratory study, and (2) to provide a clearer understanding of the statistical power in the data.</p>
+<p>In this case, the IHW method did not effectively make use of the covariate (<em>baseMean</em>) to distinguish true signal from noise, resulting in most tests being classified as non-significant and making the method overly conservative (<a href="#fig-IHW" class="quarto-xref">Figure&nbsp;8</a>). By contrast, the q-value method identified a greater number of significant tests (<a href="#fig-qvalue" class="quarto-xref">Figure&nbsp;7</a>). Given the exploratory nature of this study, the q-value method was selected, with the caveat that, given the limited sample size, it may increase the risk of false positives. The q-value method was preferred over the BH adjustment because it represents a more sophisticated approach.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist">
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Holm</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">BH</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">qvalue</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false" href="">IHW</a></li>
+</ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">plot_histogram</span><span class="op">(</span><span class="va">res_annot</span>, <span class="st">"padj_Holm"</span>, color <span class="op">=</span> <span class="st">"orange"</span>, title <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<div id="fig-holm" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-holm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-holm-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-holm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Distribution of the Holm adjusted p-values.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">plot_histogram</span><span class="op">(</span><span class="va">res_annot</span>, <span class="st">"padj_BH"</span>, color <span class="op">=</span> <span class="st">"purple"</span>, title <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<div id="fig-BH" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-BH-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-BH-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-BH-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Distribution of the Benjamini-Hochberg (BH) adjusted p-values.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">plot_histogram</span><span class="op">(</span><span class="va">res_annot</span>, <span class="st">"padj_qvalue"</span>, color <span class="op">=</span> <span class="st">"pink"</span>, title <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<div id="fig-qvalue" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-qvalue-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-qvalue-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-qvalue-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Distribution of the qvalue adjusted p-values.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">plot_histogram</span><span class="op">(</span><span class="va">res_annot</span>, <span class="st">"padj_IHW"</span>, color <span class="op">=</span> <span class="st">"limegreen"</span>, title <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<div id="fig-IHW" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-IHW-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-IHW-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-IHW-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Distribution of the Independent Hypothesis Weighting (IHW) adjusted p-values.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section></section><section id="visualizations-of-the-results" class="level3"><h3 class="anchored" data-anchor-id="visualizations-of-the-results">Visualizations of the Results</h3>
+<p>In this section, the results from the DESeq2 analysis are visualized using q-value–adjusted p-values. The aim is to highlight genes that appear to be significantly differentially expressed between the two groups (GDM and control) and to explore their potential biological relevance.</p>
+<p>Prior to visualization, a data frame was prepared in which rows with missing q-values were removed. Such missing values typically arise when a gene has insufficient information (e.g., very low counts or extreme dispersion), preventing the computation of a reliable adjusted p-value. Although these genes could, in principle, be of biological interest, the limited sample size or high level of noise in the data renders their statistical evidence too unreliable for interpretation in this context <span class="citation" data-cites="DESeq2">(<a href="#ref-DESeq2" role="doc-biblioref">Love, Huber, and Anders 2014</a>)</span>.</p>
+<div class="cell">
+<details class="code-fold"><summary>Show code</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># dataframe for visualizations</span></span>
+<span><span class="va">df_visual</span> <span class="op">&lt;-</span> <span class="va">res_annot</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">GeneID</span>, <span class="va">EnsemblGeneID</span>, <span class="va">baseMean</span>, <span class="va">log2FoldChange</span>, <span class="va">lfcSE</span>, <span class="va">pvalue</span>, <span class="va">padj_qvalue</span>, <span class="va">Description</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Remove all rows where padj_qvalue is NA</span></span>
+<span><span class="va">df_visual</span> <span class="op">&lt;-</span> <span class="va">df_visual</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">df_visual</span><span class="op">$</span><span class="va">padj_qvalue</span><span class="op">)</span>, <span class="op">]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>A volcano plot was generated with the LFC on the x-axis and the statistical significance on the y-axis. The 15 most significant genes were labeled directly on the plot for ease of interpretation. Among these, the gene <em>ENSG00000161634</em> appears to be of particular interest (<a href="#fig-volcanoplot" class="quarto-xref">Figure&nbsp;9</a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-volcanoplot" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-volcanoplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-volcanoplot-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-volcanoplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Volcano plot demonstrating the relationship between Log-fold change and level of significance. The top 15 most significant genes are labelled.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>In this figure the top 15 up- and down-regulated genes are listed according to their level of LFC. The dot appointed at each gene marks their level of significance by the adjusted p-value. The three genes with the lowest LFC and the <em>ENSG00000240567</em> gene (high significance), are of particular interest in relation to the down-regulated genes. The three genes with the highest LFC are of particular interest concerning the up-regulated genes (<a href="#fig-top-LFC" class="quarto-xref">Figure&nbsp;10</a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-top-LFC" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-top-LFC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-top-LFC-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-top-LFC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: The 30 most down- and upregulated genes according to their LFC value, and their associated significance (dot-size).
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>The normalized counts for the genes of particular interest were visualized, to demonstrate the difference between the GDM and control group. From the visualization especially gene <em>ENSG00000161634</em> and <em>ENSG00000110484</em> seem to be of interest, I will refer to them as gene <em>dermicidin</em> and <em>LINC02067</em> (both names were obtained from the metadata,). The expression of dermicidin demonstrates very clear intervariability (variation between groups) and very low intravariability (variation within group) (<a href="#fig-dermicidin" class="quarto-xref">Figure&nbsp;11</a>). For LINC02067 the intravariability is a bit higher for the control group, in comparison to dermicidin, but the intervariability is still very clear. Especially the normalized counts for the GDM group for LINC02067 are very close togetherndefined (<strong>?@fig-LINC</strong>). This suggests that dermicidin and LINC02067 are down-regulated in the GDM group compared with the control group in the postpartum placenta.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist">
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">Down-regulated</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">Up-regulated</a></li>
+</ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist">
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">ENSG00000161634 — Dermicidin</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">ENSG00000110484 — SCGB2A2</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false" href="">ENSG00000186081 — Keratin 5</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-4" role="tab" aria-controls="tabset-2-4" aria-selected="false" href="">ENSG00000240567 — LINC02067</a></li>
+</ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-dermicidin" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-dermicidin-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-dermicidin-1.png" id="fig-dermicidin" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-dermicidin-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="diffExGenesGDMPlacenta_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="diffExGenesGDMPlacenta_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-4-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-LINC02067" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-LINC02067-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-LINC02067-1.png" id="fig-LINC02067" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-LINC02067-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist">
+<li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">ENSG00000101938 — CHRDL1</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">ENSG00000122133 — PAEP</a></li>
+<li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false" href="">ENSG00000162882 — HAAO</a></li>
+</ul>
+<div class="tab-content">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="diffExGenesGDMPlacenta_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="diffExGenesGDMPlacenta_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="diffExGenesGDMPlacenta_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>This visualization provides an overview of the results generated in this analysis. It displays the 16 genes with the highest LFC values, along with their GeneIDs/Ensembl GeneIDs and a corresponding description. The fill color of the bars indicates the level of significance. The plot highlights ENSG00000161634 (dermicidin) and ENSG00000240567 (LINC02067) as particularly noteworthy, especially compared with the other genes that have high LFC values (<a href="#fig-full" class="quarto-xref">Figure&nbsp;13</a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-full" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-full-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="diffExGenesGDMPlacenta_files/figure-html/fig-full-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-full-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: Demonstrating the genes with the eight lowest and eight highest LFC values, and their associated description. The fill of the bars indicate their level of significance.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</section><section id="discussion-conclusion" class="level3"><h3 class="anchored" data-anchor-id="discussion-conclusion">Discussion &amp; Conclusion</h3>
+<p>The analysis identified two genes that appear to be significantly differentially expressed between the GDM and control groups. These findings are clearly illustrated in (<a href="#fig-dermicidin" class="quarto-xref">Figure&nbsp;11</a>) and (<a href="#fig-LINC02067" class="quarto-xref">Figure&nbsp;12</a>). One of these genes, <strong>ENSG00000161634 (dermicidin)</strong>, encodes a secreted protein with two major functional domains: (1) a C-terminal peptide with antimicrobial properties, and (2) an N-terminal peptide that promotes neural cell survival under conditions of severe oxidative stress <span class="citation" data-cites="NCBIGene117159">(<a href="#ref-NCBIGene117159" role="doc-biblioref">NCBI 2025</a>)</span>. This finding is particularly relevant given that GDM has been strongly associated with increased oxidative stress, suggesting that dermicidin and its protein products may represent potential biomarkers for GDM<span class="citation" data-cites="Saucedo2023">(<a href="#ref-Saucedo2023" role="doc-biblioref">Saucedo et al. 2023</a>)</span>.</p>
+<p>Another gene of potential interest is ENSG00000240567 (LINC02067), which appears to be differentially expressed between the GDM and control groups. This gene encodes a long intergenic non-protein coding RNA (lincRNA) and therefore does not produce a protein <span class="citation" data-cites="NCBIGene101243545">(<a href="#ref-NCBIGene101243545" role="doc-biblioref">National Center for Biotechnology Information 2025</a>)</span>. Although its specific function has not been described in the literature, its differential expression suggests that it may still be biologically relevant and could serve as a potential biomarker.</p>
+<p>This analysis uncovered several potentially relevant genes. However, the limited sample size likely reduced statistical power, such that only very strong signals could be detected with confidence. Future studies employing larger datasets will be valuable for validating these findings. Moreover, longitudinal datasets that include samples from different stages of gestation could provide important insights into how molecular profiles change over time and how these changes are influenced by GDM. Such data would help disentangle gestational age-related variation from disease-specific effects, thereby clarifying the true molecular signature of GDM.</p>
+<!-- -->
+
+
+</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-DESeq2" class="csl-entry" role="listitem">
+Love, Michael I., Wolfgang Huber, and Simon Anders. 2014. <span>“Moderated Estimation of Fold Change and Dispersion for RNA-Seq Data with DESeq2”</span> 15: 550. <a href="https://doi.org/10.1186/s13059-014-0550-8">https://doi.org/10.1186/s13059-014-0550-8</a>.
+</div>
+<div id="ref-LoveMichaelI2018" class="csl-entry" role="listitem">
+Love, Michael I, Zhu, Anqi, and Ibrahim, Joseph G. 2018. <span>“Heavy-Tailed Prior Distributions for Sequence Count Data: Removing the Noise and Preserving Large Differences.”</span> <em>Oxford University Press (OUP)</em>. <a href="https://doi.org/10.17615/J2DS-AK73">https://doi.org/10.17615/J2DS-AK73</a>.
+</div>
+<div id="ref-McIntyre2019" class="csl-entry" role="listitem">
+McIntyre, H. David, Patrick Catalano, Cuilin Zhang, Gernot Desoye, Elisabeth R. Mathiesen, and Peter Damm. 2019. <span>“Gestational Diabetes Mellitus.”</span> <em>Nature Reviews Disease Primers</em> 5 (1). <a href="https://doi.org/10.1038/s41572-019-0098-8">https://doi.org/10.1038/s41572-019-0098-8</a>.
+</div>
+<div id="ref-NCBIGene101243545" class="csl-entry" role="listitem">
+National Center for Biotechnology Information. 2025. <span>“NCBI Gene: LINC02067 (Homo Sapiens), Gene ID: 101243545.”</span> <a href="https://www.ncbi.nlm.nih.gov/gene/101243545">https://www.ncbi.nlm.nih.gov/gene/101243545</a>.
+</div>
+<div id="ref-NCBIGene117159" class="csl-entry" role="listitem">
+NCBI. 2025. <span>“NCBI Gene ID:117159, Dermcidin (Homo Sapiens).”</span> <a href="https://www.ncbi.nlm.nih.gov/gene/117159">https://www.ncbi.nlm.nih.gov/gene/117159</a>.
+</div>
+<div id="ref-Saucedo2023" class="csl-entry" role="listitem">
+Saucedo, Renata, Clara Ortega-Camarillo, Aldo Ferreira-Hermosillo, Mary Flor Díaz-Velázquez, Claudia Meixueiro-Calderón, and Jorge Valencia-Ortega. 2023. <span>“Role of Oxidative Stress and Inflammation in Gestational Diabetes Mellitus.”</span> <em>Antioxidants</em> 12 (10): 1812. <a href="https://doi.org/10.3390/antiox12101812">https://doi.org/10.3390/antiox12101812</a>.
+</div>
+<div id="ref-GSE154414" class="csl-entry" role="listitem">
+Wang, J, and Jin H. 2021-12-31. <span>“RNA Sequence of Gestational Diabetes Mellitus (GDM) and Healthy Control Placentas.”</span> https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154414.
+</div>
+</div></section></div></main><!-- /main column --><script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = false;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Differential Gene Expression in Placental Tissue from Women with and without Gestational Diabetes Mellitus"</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "Carolina Ferreira Jørgensen, MSc in Bioinformatics"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">  html: </span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">    theme: </span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">      light: cosmo</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">      dark: slate</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">    code-link: true</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">    highlight-style:</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">      light: tango</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">      dark: zenburn</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: true</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">    code-summary: "Show code"</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-location: left</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-depth: 4</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/photo.jpg)</span>{width="117"}</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="fu">### Introduction</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>Gestational diabetes mellitus (GDM) is among the most common complications of pregnancy, yet it remains frequently underdiagnosed. The condition is associated with increased risks of adverse outcomes for both mother and child, including the later development of type 2 diabetes and obesity. Identifying biomarkers that distinguish women who develop GDM from those who do not is therefore of considerable interest, as such markers could provide insights into the underlying pathophysiology of GDM and may also serve as predictive indicators to enable timely intervention <span class="co">[</span><span class="ot">@McIntyre2019</span><span class="co">]</span>.</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>This study utilized publicly available RNA sequencing data entitled *“RNA sequence of gestational diabetes mellitus (GDM) and healthy control placentas”*, obtained from the NCBI Gene Expression Omnibus (GEO) database <span class="co">[</span><span class="ot">@GSE154414</span><span class="co">]</span>. The dataset comprises eight placental samples, four from women diagnosed with GDM and four from healthy controls. The mean gestational age at the time of sampling was approximately <span class="in">`r mean(37.2,38.3,38.2,37.5)`</span> weeks in the GDM group and <span class="in">`r mean(37.6,38.2,38.4,38.5)`</span> weeks in the control group, indicating comparable gestational ages across groups. All samples were collected postpartum from placental tissue. A detailed description of the experimental protocol is available on the GEO dataset webpage.</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>The aim of this analysis was to identify differentially expressed genes in the postpartum placenta between women who developed GDM and the control group. Furthermore, it was sought to investigate the biological processes associated with the significantly differentially expressed genes.</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>***Data Overview:***</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Sample size:** *n* = 4 (GDM) and *n* = 4 (Control)</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Tissue source:** Placenta (collected postpartum)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Gestational age at sampling:** 37-38 weeks for both sampling groups</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Sequencing platform:** Illumina HiSeq 4000</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Analysis</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>In the following sections, the data introduced above are analyzed. The workflow begins with preprocessing the data, preparing it for differential expression analysis (DEA). DEA is then carried out using the **DESeq2** package, and the results are further refined through genomic control and multiple testing adjustments. All analyses and visualizations were created using R (version 4.4.2).</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Data Preprocessing</span></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>Required packages for the analyses:</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a><span class="in">```{r message=FALSE, warning=FALSE}</span></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a><span class="in">library(DESeq2)</span></span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a><span class="in">library(apeglm)</span></span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a><span class="in">library(qvalue)</span></span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a><span class="in">library(IHW)</span></span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a><span class="in">library(dplyr)</span></span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a><span class="in">library(tidyr)</span></span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a><span class="in">library(stringr)</span></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a><span class="in">library(forcats)</span></span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a><span class="in">library(tidytext)  </span></span>
+<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a><span class="in">library(ggrepel)</span></span>
+<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a>In this section, the count data and metadata are loaded into the document. Relevant information from both data frames is merged into a single data frame, after which mild filtering is applied to the count data. The filtering is done by removing genes where the sum of counts across all samples is below seven. These genes are removed because they are statistically unreliable, and their removal minimizes the effects of multiple testing. In addition, a separate data frame is created to capture the sample information (GDM or control). These steps prepare the data for the DESeq2 procedure <span class="co">[</span><span class="ot">@DESeq2</span><span class="co">]</span>.</span>
+<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a><span class="in">```{r message=FALSE, warning=FALSE}</span></span>
+<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a><span class="in"># Ensure correct directory</span></span>
+<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a><span class="in">setwd("C:/Users/carol/OneDrive/Skrivebord/independent_research")</span></span>
+<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a><span class="in"># getwd()</span></span>
+<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a><span class="in"># Load Count data:</span></span>
+<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a><span class="in">counts &lt;- read.table("GSE154414_raw_counts_GRCh38.p13_NCBI.tsv.gz",</span></span>
+<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a><span class="in">                     header=TRUE, sep="\t", row.names=1)</span></span>
+<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a><span class="in"># Ensure counts is integers (for DESeq2)</span></span>
+<span id="cb13-77"><a href="#cb13-77" aria-hidden="true" tabindex="-1"></a><span class="in">counts[] &lt;- lapply(counts, as.integer)</span></span>
+<span id="cb13-78"><a href="#cb13-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a><span class="in"># Load meta data:</span></span>
+<span id="cb13-80"><a href="#cb13-80" aria-hidden="true" tabindex="-1"></a><span class="in">annot &lt;- read.table("Human.GRCh38.p13.annot.tsv.gz", </span></span>
+<span id="cb13-81"><a href="#cb13-81" aria-hidden="true" tabindex="-1"></a><span class="in">                    header=TRUE, sep="\t", quote="", comment.char="")</span></span>
+<span id="cb13-82"><a href="#cb13-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a><span class="in"># The count- and meta-data are merged into one dataframe</span></span>
+<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a><span class="in">counts_annot &lt;- merge(annot, counts, by.x="GeneID", by.y="row.names")</span></span>
+<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a><span class="in"># Make a dataframe that descripes the sample-information (GDM or control)</span></span>
+<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a><span class="in"># colnames(counts)</span></span>
+<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a><span class="in">sample_info &lt;- data.frame(</span></span>
+<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a><span class="in">  row.names = colnames(counts),</span></span>
+<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a><span class="in">  condition = factor(c("GDM","GDM","GDM","GDM","Control","Control","Control","Control"),</span></span>
+<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a><span class="in">                     levels = c("Control","GDM"))  # Control as reference</span></span>
+<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a><span class="in">)</span></span>
+<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a><span class="in"># Perform filtering</span></span>
+<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a><span class="in">keep &lt;- rowSums(counts) &gt;= 7</span></span>
+<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a><span class="in">counts_filt &lt;- counts[keep, ]</span></span>
+<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a><span class="in"># sum(keep); dim(counts_filt)</span></span>
+<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-101"><a href="#cb13-101" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Differential Expression Analysis using the DESeq2 Package</span></span>
+<span id="cb13-102"><a href="#cb13-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-103"><a href="#cb13-103" aria-hidden="true" tabindex="-1"></a>In this section, DEA is performed on the count data using the DESeq2 package. This involves first creating a <span class="in">`dds`</span> object and then running the *DESeq* function on that object. The log-fold changes (LFCs) obtained from DESeq2 are subsequently shrunk using *apeglm* to improve robustness and interpretability. Next, a variance-stabilizing transformation (VST) is applied to the <span class="in">`dds`</span> object. The VST-transformed data is suitable for visualizations such as PCA plots <span class="co">[</span><span class="ot">@LoveMichaelI2018</span><span class="co">]</span>. Finally, the DESeq2 results are combined with relevant metadata into a new data frame for downstream analyses.</span>
+<span id="cb13-104"><a href="#cb13-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-105"><a href="#cb13-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, message = FALSE, warning=FALSE}</span></span>
+<span id="cb13-106"><a href="#cb13-106" aria-hidden="true" tabindex="-1"></a><span class="in"># Make dds objec for DESeq </span></span>
+<span id="cb13-107"><a href="#cb13-107" aria-hidden="true" tabindex="-1"></a><span class="in"># Condition : GDM or Control </span></span>
+<span id="cb13-108"><a href="#cb13-108" aria-hidden="true" tabindex="-1"></a><span class="in">dds &lt;- DESeqDataSetFromMatrix(countData = counts_filt,</span></span>
+<span id="cb13-109"><a href="#cb13-109" aria-hidden="true" tabindex="-1"></a><span class="in">                              colData = sample_info,</span></span>
+<span id="cb13-110"><a href="#cb13-110" aria-hidden="true" tabindex="-1"></a><span class="in">                              design = ~ condition)</span></span>
+<span id="cb13-111"><a href="#cb13-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-112"><a href="#cb13-112" aria-hidden="true" tabindex="-1"></a><span class="in"># Perform DEA using DESeq on the dds object</span></span>
+<span id="cb13-113"><a href="#cb13-113" aria-hidden="true" tabindex="-1"></a><span class="in">dds &lt;- DESeq(dds)</span></span>
+<span id="cb13-114"><a href="#cb13-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-115"><a href="#cb13-115" aria-hidden="true" tabindex="-1"></a><span class="in"># Extract the results </span></span>
+<span id="cb13-116"><a href="#cb13-116" aria-hidden="true" tabindex="-1"></a><span class="in"># Control is baseline</span></span>
+<span id="cb13-117"><a href="#cb13-117" aria-hidden="true" tabindex="-1"></a><span class="in">res &lt;- results(dds, contrast = c("condition","GDM","Control"))  # GDM vs Control</span></span>
+<span id="cb13-118"><a href="#cb13-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-119"><a href="#cb13-119" aria-hidden="true" tabindex="-1"></a><span class="in"># Perform "apeglm" LFC shrinkage (Empirical Bayes Shrinkage) onto the LFC values</span></span>
+<span id="cb13-120"><a href="#cb13-120" aria-hidden="true" tabindex="-1"></a><span class="in">res &lt;- lfcShrink(dds, coef = "condition_GDM_vs_Control", type = "apeglm")</span></span>
+<span id="cb13-121"><a href="#cb13-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-122"><a href="#cb13-122" aria-hidden="true" tabindex="-1"></a><span class="in"># Order results with regard to the adjusted p-values</span></span>
+<span id="cb13-123"><a href="#cb13-123" aria-hidden="true" tabindex="-1"></a><span class="in">res_ord &lt;- res[order(res$padj), ]</span></span>
+<span id="cb13-124"><a href="#cb13-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-125"><a href="#cb13-125" aria-hidden="true" tabindex="-1"></a><span class="in"># Make the ordered matrix into a dataframe</span></span>
+<span id="cb13-126"><a href="#cb13-126" aria-hidden="true" tabindex="-1"></a><span class="in">res_df &lt;- as.data.frame(res_ord)</span></span>
+<span id="cb13-127"><a href="#cb13-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-128"><a href="#cb13-128" aria-hidden="true" tabindex="-1"></a><span class="in"># Creates a new column called "GeneID" and fills it with the rownames</span></span>
+<span id="cb13-129"><a href="#cb13-129" aria-hidden="true" tabindex="-1"></a><span class="in">res_df$GeneID &lt;- rownames(res_df)</span></span>
+<span id="cb13-130"><a href="#cb13-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-131"><a href="#cb13-131" aria-hidden="true" tabindex="-1"></a><span class="in"># Merge columns from the meta-data with the results dataframe by the "GeneID" column</span></span>
+<span id="cb13-132"><a href="#cb13-132" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot &lt;- merge(annot[, c("GeneID", "EnsemblGeneID", "Symbol","GeneType", "Description")], res_df, by = "GeneID", all.y = TRUE)</span></span>
+<span id="cb13-133"><a href="#cb13-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-134"><a href="#cb13-134" aria-hidden="true" tabindex="-1"></a><span class="in"># A list of the top significant genes</span></span>
+<span id="cb13-135"><a href="#cb13-135" aria-hidden="true" tabindex="-1"></a><span class="in">sig_res &lt;- as.data.frame(subset(res_ord, padj &lt; 0.05))</span></span>
+<span id="cb13-136"><a href="#cb13-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-137"><a href="#cb13-137" aria-hidden="true" tabindex="-1"></a><span class="in"># Transformed counts by vst-transformation</span></span>
+<span id="cb13-138"><a href="#cb13-138" aria-hidden="true" tabindex="-1"></a><span class="in">vsd &lt;- vst(dds, blind = FALSE)</span></span>
+<span id="cb13-139"><a href="#cb13-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a>Next, visualizations of the DESeq2 results are presented. For the PCA plot, the VST-transformed data was used. The PCA shows some separation between the groups, mainly along PC1, but also considerable variation within groups, making the distinction between them less clear (<span class="co">[</span><span class="ot">@fig-PCA-plot</span><span class="co">]</span>). This indicates that it may be difficult to identify strong candidate features that clearly separate the two groups in the data.</span>
+<span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, message=FALSE, warning=FALSE, label = PCA_plot}</span></span>
+<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-PCA-plot</span></span>
+<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "PCA plot."</span></span>
+<span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a><span class="in"># PCA plot</span></span>
+<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a><span class="in">plotPCA(vsd, intgroup = "condition", ntop = 500, pcsToUse = 1:2)</span></span>
+<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a>An MA-plot is also created, which demonstrates that many of the genes have LFC values close to zero, indicating no differential expression. In other words, most genes are not differentially expressed between the sample groups. The strongest signals are expected on the right side of the plot, where genes have higher expression levels and larger LFC valuesndefined (<span class="co">[</span><span class="ot">@fig-MA-plot</span><span class="co">]</span>). This suggests that there may be relevant candidates for distinguishing between the two groups, because significant genes are marked in this region. Confidence in these results is strengthened by the fact that shrinkage has been applied to the LFC values, making them re</span>
+<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, message=FALSE, warning=FALSE, label = MA_plot}</span></span>
+<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-MA-plot</span></span>
+<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "MA-Plot."</span></span>
+<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a><span class="in"># MA-Plots using the base means and the LFCs</span></span>
+<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a><span class="in">plotMA(res, alpha = 0.05, xlab = "Mean of Normalized Counts", ylab = "Log-Fold Change", colNonSig = "gray60", colSig = "red", colLine = "black")</span></span>
+<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Genomic Control</span></span>
+<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a>Genomic Control recalibrates the test statistics and p-values under the assumption that the median of the test statistics is a trustworthy indicator of bias within the data. Genomic Control may be preferred if a technical bias is suspected. First, the p-value distribution is visualized to assess whether any unexpected patterns are present. In this context, the raw p-value distribution appears exceptionally well aligned with the theoretical expectation (right-skewed, peaking on the left and then followed by an almost perfectly uniform distribution) (<span class="co">[</span><span class="ot">@fig-raw-pvalues</span><span class="co">]</span>). It might therefore seem redundant to perform Genomic Control; however, it will be applied to ensure data integrity and to minimize potential influence from technical bias.</span>
+<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a><span class="in">```{r echo=FALSE, warning=FALSE, label = fig_raw_pvalues, fig.cap= "The distribution of raw p-values (horizontal line a y = 1)"}</span></span>
+<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-raw-pvalues</span></span>
+<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "Distribution of the raw p-values obtained from the DESeq2 analysis."</span></span>
+<span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- res$pvalue</span></span>
+<span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- p[!is.na(p)] # Remove NA's</span></span>
+<span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-173"><a href="#cb13-173" aria-hidden="true" tabindex="-1"></a><span class="in"># make into df</span></span>
+<span id="cb13-174"><a href="#cb13-174" aria-hidden="true" tabindex="-1"></a><span class="in">df_pvalue &lt;- data.frame(p = p)</span></span>
+<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(df_pvalue, aes(p)) +</span></span>
+<span id="cb13-177"><a href="#cb13-177" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_histogram(aes(y = ..density..), bins = 50, closed = "left") +</span></span>
+<span id="cb13-178"><a href="#cb13-178" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_hline(yintercept = 1, linetype = "dashed") +   # expected under null</span></span>
+<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a><span class="in">  xlim(0, 1) +</span></span>
+<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(x = "p-value", y = "Density")</span></span>
+<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a>Code for performing Genomic Control:</span>
+<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-185"><a href="#cb13-185" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, message=FALSE, warning=FALSE}</span></span>
+<span id="cb13-186"><a href="#cb13-186" aria-hidden="true" tabindex="-1"></a><span class="in"># Get the LFCs and SEs for each comparison</span></span>
+<span id="cb13-187"><a href="#cb13-187" aria-hidden="true" tabindex="-1"></a><span class="in">betas &lt;- res_annot$log2FoldChange</span></span>
+<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a><span class="in">ses &lt;- res_annot$lfcSE</span></span>
+<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute Wald statistics</span></span>
+<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a><span class="in">z_scores &lt;- betas / ses</span></span>
+<span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a><span class="in"># Chi-squared stats</span></span>
+<span id="cb13-193"><a href="#cb13-193" aria-hidden="true" tabindex="-1"></a><span class="in">wald_stats &lt;- z_scores^2</span></span>
+<span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a><span class="in"># Estimate genomic inflation factor (lambda)</span></span>
+<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a><span class="in">lambda_gc &lt;- median(wald_stats, na.rm = TRUE) / qchisq(0.5, df = 1)  # ~0.456</span></span>
+<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a><span class="in">lambda_gc_vec &lt;- lambda_gc  # Save inflation factor</span></span>
+<span id="cb13-198"><a href="#cb13-198" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb13-199"><a href="#cb13-199" aria-hidden="true" tabindex="-1"></a><span class="in"># Adjust test stats</span></span>
+<span id="cb13-200"><a href="#cb13-200" aria-hidden="true" tabindex="-1"></a><span class="in">GC_adjusted_test_statistics &lt;- wald_stats / lambda_gc</span></span>
+<span id="cb13-201"><a href="#cb13-201" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb13-202"><a href="#cb13-202" aria-hidden="true" tabindex="-1"></a><span class="in"># Recalculate p-values</span></span>
+<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a><span class="in">GC_adjusted_pvalues &lt;- pchisq(GC_adjusted_test_statistics, df = 1, lower.tail = FALSE)</span></span>
+<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a><span class="in"># Make to dataframes</span></span>
+<span id="cb13-206"><a href="#cb13-206" aria-hidden="true" tabindex="-1"></a><span class="in">GC_adjusted_test_statistics &lt;- data.frame(GC_adjusted_test_statistics)</span></span>
+<span id="cb13-207"><a href="#cb13-207" aria-hidden="true" tabindex="-1"></a><span class="in">GC_adjusted_pvalues &lt;- data.frame(GC_adjusted_pvalues)</span></span>
+<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a><span class="in"># Bind to Big dataframe</span></span>
+<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot &lt;- cbind(res_annot, GC_adjusted_test_statistics)</span></span>
+<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot &lt;- cbind(res_annot, GC_adjusted_pvalues) </span></span>
+<span id="cb13-212"><a href="#cb13-212" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-213"><a href="#cb13-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-214"><a href="#cb13-214" aria-hidden="true" tabindex="-1"></a>A p-value distribution is again created, this time using genomic-control–adjusted p-values. The distribution shows a U-shaped pattern, indicating that genomic control overcorrected the p-values, as expected (<span class="co">[</span><span class="ot">@fig-GC-pvalues</span><span class="co">]</span>). Therefore, the GC-adjusted p-values and test statistics will not be used in further downstream analysis.</span>
+<span id="cb13-215"><a href="#cb13-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-216"><a href="#cb13-216" aria-hidden="true" tabindex="-1"></a><span class="in">```{r echo=FALSE, warning=FALSE, label = fig_GC_pvalues}</span></span>
+<span id="cb13-217"><a href="#cb13-217" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-GC-pvalues</span></span>
+<span id="cb13-218"><a href="#cb13-218" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "Distribution of the Genomically Controlled p-values." </span></span>
+<span id="cb13-219"><a href="#cb13-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-220"><a href="#cb13-220" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- res_annot$GC_adjusted_pvalues</span></span>
+<span id="cb13-221"><a href="#cb13-221" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- p[!is.na(p)] # Remove NA's</span></span>
+<span id="cb13-222"><a href="#cb13-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a><span class="in"># make into df</span></span>
+<span id="cb13-224"><a href="#cb13-224" aria-hidden="true" tabindex="-1"></a><span class="in">df_pvalue_GC &lt;- data.frame(p = p)</span></span>
+<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-226"><a href="#cb13-226" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(df_pvalue_GC, aes(p)) +</span></span>
+<span id="cb13-227"><a href="#cb13-227" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_histogram(aes(y = ..density..), bins = 50, closed = "left") +</span></span>
+<span id="cb13-228"><a href="#cb13-228" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_hline(yintercept = 1, linetype = "dashed") +   # expected under null</span></span>
+<span id="cb13-229"><a href="#cb13-229" aria-hidden="true" tabindex="-1"></a><span class="in">  xlim(0, 1) +</span></span>
+<span id="cb13-230"><a href="#cb13-230" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(x = "GC p-value", y = "Density")</span></span>
+<span id="cb13-231"><a href="#cb13-231" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-232"><a href="#cb13-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-233"><a href="#cb13-233" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Multiple Testing Adjustment</span></span>
+<span id="cb13-234"><a href="#cb13-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-235"><a href="#cb13-235" aria-hidden="true" tabindex="-1"></a>The DESeq2 package provides locally adjusted p-values using the Benjamini–Hochberg (BH) procedure. In addition, the raw p-values can be manually adjusted using several alternative methods, including Holm, the q-value method, and Independent Hypothesis Weighting (IHW). As these methods differ in their degree of conservatism, applying multiple approaches allows for a more comprehensive assessment of the most appropriate adjustment strategy for the dataset. The adjusted p-values are appended to the full data frame, <span class="in">`res_annot`</span>.</span>
+<span id="cb13-236"><a href="#cb13-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-237"><a href="#cb13-237" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, message=FALSE, warning=FALSE}</span></span>
+<span id="cb13-238"><a href="#cb13-238" aria-hidden="true" tabindex="-1"></a><span class="in"># Holm (very conservative)</span></span>
+<span id="cb13-239"><a href="#cb13-239" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot$padj_Holm &lt;- p.adjust(res_annot$pvalue, method = "holm")</span></span>
+<span id="cb13-240"><a href="#cb13-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-241"><a href="#cb13-241" aria-hidden="true" tabindex="-1"></a><span class="in"># Benjamini-Hochberg (less conservative)</span></span>
+<span id="cb13-242"><a href="#cb13-242" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot$padj_BH &lt;- p.adjust(res_annot$pvalue, method = "BH")</span></span>
+<span id="cb13-243"><a href="#cb13-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-244"><a href="#cb13-244" aria-hidden="true" tabindex="-1"></a><span class="in"># Q-value (even less conservative)</span></span>
+<span id="cb13-245"><a href="#cb13-245" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot$padj_qvalue &lt;- qvalue(res_annot$pvalue)$qvalues</span></span>
+<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-247"><a href="#cb13-247" aria-hidden="true" tabindex="-1"></a><span class="in"># IHW (most sophisticated)</span></span>
+<span id="cb13-248"><a href="#cb13-248" aria-hidden="true" tabindex="-1"></a><span class="in">fit &lt;- ihw(pvalues = res_annot$pvalue, covariates = res_annot$baseMean, alpha = 0.01)</span></span>
+<span id="cb13-249"><a href="#cb13-249" aria-hidden="true" tabindex="-1"></a><span class="in">res_annot$padj_IHW &lt;- adj_pvalues(fit)</span></span>
+<span id="cb13-250"><a href="#cb13-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-251"><a href="#cb13-251" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-252"><a href="#cb13-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-253"><a href="#cb13-253" aria-hidden="true" tabindex="-1"></a>The distributions of the adjusted p-values are visualized for two purposes: (1) to help select the most appropriate adjustment method for this exploratory study, and (2) to provide a clearer understanding of the statistical power in the data.</span>
+<span id="cb13-254"><a href="#cb13-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-255"><a href="#cb13-255" aria-hidden="true" tabindex="-1"></a>In this case, the IHW method did not effectively make use of the covariate (*baseMean*) to distinguish true signal from noise, resulting in most tests being classified as non-significant and making the method overly conservative (<span class="co">[</span><span class="ot">@fig-IHW</span><span class="co">]</span>). By contrast, the q-value method identified a greater number of significant tests (<span class="co">[</span><span class="ot">@fig-qvalue</span><span class="co">]</span>). Given the exploratory nature of this study, the q-value method was selected, with the caveat that, given the limited sample size, it may increase the risk of false positives. The q-value method was preferred over the BH adjustment because it represents a more sophisticated approach.</span>
+<span id="cb13-256"><a href="#cb13-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-257"><a href="#cb13-257" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE, message=FALSE}</span></span>
+<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a><span class="in">plot_histogram &lt;- function(data, column, bins = 50, title = NULL, xlab = NULL, color = "skyblue") {</span></span>
+<span id="cb13-259"><a href="#cb13-259" aria-hidden="true" tabindex="-1"></a><span class="in">  # Ensure column exists</span></span>
+<span id="cb13-260"><a href="#cb13-260" aria-hidden="true" tabindex="-1"></a><span class="in">  if (!column %in% names(data)) {</span></span>
+<span id="cb13-261"><a href="#cb13-261" aria-hidden="true" tabindex="-1"></a><span class="in">    stop("Column not found in the data frame")</span></span>
+<span id="cb13-262"><a href="#cb13-262" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb13-263"><a href="#cb13-263" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb13-264"><a href="#cb13-264" aria-hidden="true" tabindex="-1"></a><span class="in">  # Extract the column</span></span>
+<span id="cb13-265"><a href="#cb13-265" aria-hidden="true" tabindex="-1"></a><span class="in">  values &lt;- data[[column]]</span></span>
+<span id="cb13-266"><a href="#cb13-266" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb13-267"><a href="#cb13-267" aria-hidden="true" tabindex="-1"></a><span class="in">  # Plot histogram</span></span>
+<span id="cb13-268"><a href="#cb13-268" aria-hidden="true" tabindex="-1"></a><span class="in">  hist(values,</span></span>
+<span id="cb13-269"><a href="#cb13-269" aria-hidden="true" tabindex="-1"></a><span class="in">       breaks = bins,</span></span>
+<span id="cb13-270"><a href="#cb13-270" aria-hidden="true" tabindex="-1"></a><span class="in">       main = ifelse(is.null(title), NULL, title),</span></span>
+<span id="cb13-271"><a href="#cb13-271" aria-hidden="true" tabindex="-1"></a><span class="in">       xlab = ifelse(is.null(xlab), column, xlab),</span></span>
+<span id="cb13-272"><a href="#cb13-272" aria-hidden="true" tabindex="-1"></a><span class="in">       col = color,</span></span>
+<span id="cb13-273"><a href="#cb13-273" aria-hidden="true" tabindex="-1"></a><span class="in">       border = "white")</span></span>
+<span id="cb13-274"><a href="#cb13-274" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb13-275"><a href="#cb13-275" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-276"><a href="#cb13-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-277"><a href="#cb13-277" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
+<span id="cb13-278"><a href="#cb13-278" aria-hidden="true" tabindex="-1"></a><span class="fu">### Holm</span></span>
+<span id="cb13-279"><a href="#cb13-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-282"><a href="#cb13-282" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-283"><a href="#cb13-283" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-holm</span></span>
+<span id="cb13-284"><a href="#cb13-284" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the Holm adjusted p-values."</span></span>
+<span id="cb13-285"><a href="#cb13-285" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_histogram</span>(res_annot, <span class="st">"padj_Holm"</span>, <span class="at">color =</span> <span class="st">"orange"</span>, <span class="at">title =</span> <span class="st">""</span>)</span>
+<span id="cb13-286"><a href="#cb13-286" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-287"><a href="#cb13-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-288"><a href="#cb13-288" aria-hidden="true" tabindex="-1"></a><span class="fu">### BH</span></span>
+<span id="cb13-289"><a href="#cb13-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-292"><a href="#cb13-292" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-293"><a href="#cb13-293" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-BH</span></span>
+<span id="cb13-294"><a href="#cb13-294" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the Benjamini-Hochberg (BH) adjusted p-values."</span></span>
+<span id="cb13-295"><a href="#cb13-295" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_histogram</span>(res_annot, <span class="st">"padj_BH"</span>, <span class="at">color =</span> <span class="st">"purple"</span>, <span class="at">title =</span> <span class="st">""</span>)</span>
+<span id="cb13-296"><a href="#cb13-296" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-297"><a href="#cb13-297" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-298"><a href="#cb13-298" aria-hidden="true" tabindex="-1"></a><span class="fu">### qvalue</span></span>
+<span id="cb13-299"><a href="#cb13-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-302"><a href="#cb13-302" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-303"><a href="#cb13-303" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-qvalue</span></span>
+<span id="cb13-304"><a href="#cb13-304" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the qvalue adjusted p-values."</span></span>
+<span id="cb13-305"><a href="#cb13-305" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_histogram</span>(res_annot, <span class="st">"padj_qvalue"</span>, <span class="at">color =</span> <span class="st">"pink"</span>, <span class="at">title =</span> <span class="st">""</span>)</span>
+<span id="cb13-306"><a href="#cb13-306" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-307"><a href="#cb13-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-308"><a href="#cb13-308" aria-hidden="true" tabindex="-1"></a><span class="fu">### IHW</span></span>
+<span id="cb13-309"><a href="#cb13-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-312"><a href="#cb13-312" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-313"><a href="#cb13-313" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-IHW</span></span>
+<span id="cb13-314"><a href="#cb13-314" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the Independent Hypothesis Weighting (IHW) adjusted p-values."</span></span>
+<span id="cb13-315"><a href="#cb13-315" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_histogram</span>(res_annot, <span class="st">"padj_IHW"</span>, <span class="at">color =</span> <span class="st">"limegreen"</span>, <span class="at">title =</span> <span class="st">""</span>)</span>
+<span id="cb13-316"><a href="#cb13-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-317"><a href="#cb13-317" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-318"><a href="#cb13-318" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-319"><a href="#cb13-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-320"><a href="#cb13-320" aria-hidden="true" tabindex="-1"></a><span class="fu">### Visualizations of the Results</span></span>
+<span id="cb13-321"><a href="#cb13-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-322"><a href="#cb13-322" aria-hidden="true" tabindex="-1"></a>In this section, the results from the DESeq2 analysis are visualized using q-value–adjusted p-values. The aim is to highlight genes that appear to be significantly differentially expressed between the two groups (GDM and control) and to explore their potential biological relevance.</span>
+<span id="cb13-323"><a href="#cb13-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-324"><a href="#cb13-324" aria-hidden="true" tabindex="-1"></a>Prior to visualization, a data frame was prepared in which rows with missing q-values were removed. Such missing values typically arise when a gene has insufficient information (e.g., very low counts or extreme dispersion), preventing the computation of a reliable adjusted p-value. Although these genes could, in principle, be of biological interest, the limited sample size or high level of noise in the data renders their statistical evidence too unreliable for interpretation in this context <span class="co">[</span><span class="ot">@DESeq2</span><span class="co">]</span>.</span>
+<span id="cb13-325"><a href="#cb13-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-326"><a href="#cb13-326" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, message=FALSE, warning=FALSE}</span></span>
+<span id="cb13-327"><a href="#cb13-327" aria-hidden="true" tabindex="-1"></a><span class="in"># dataframe for visualizations</span></span>
+<span id="cb13-328"><a href="#cb13-328" aria-hidden="true" tabindex="-1"></a><span class="in">df_visual &lt;- res_annot |&gt; select(GeneID, EnsemblGeneID, baseMean, log2FoldChange, lfcSE, pvalue, padj_qvalue, Description)</span></span>
+<span id="cb13-329"><a href="#cb13-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-330"><a href="#cb13-330" aria-hidden="true" tabindex="-1"></a><span class="in"># Remove all rows where padj_qvalue is NA</span></span>
+<span id="cb13-331"><a href="#cb13-331" aria-hidden="true" tabindex="-1"></a><span class="in">df_visual &lt;- df_visual[!is.na(df_visual$padj_qvalue), ]</span></span>
+<span id="cb13-332"><a href="#cb13-332" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-333"><a href="#cb13-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-334"><a href="#cb13-334" aria-hidden="true" tabindex="-1"></a>A volcano plot was generated with the LFC on the x-axis and the statistical significance on the y-axis. The 15 most significant genes were labeled directly on the plot for ease of interpretation. Among these, the gene *ENSG00000161634* appears to be of particular interest (<span class="co">[</span><span class="ot">@fig-volcanoplot</span><span class="co">]</span>).</span>
+<span id="cb13-335"><a href="#cb13-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-336"><a href="#cb13-336" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE}</span></span>
+<span id="cb13-337"><a href="#cb13-337" aria-hidden="true" tabindex="-1"></a><span class="in">volcano_plot &lt;- function(</span></span>
+<span id="cb13-338"><a href="#cb13-338" aria-hidden="true" tabindex="-1"></a><span class="in">  df,</span></span>
+<span id="cb13-339"><a href="#cb13-339" aria-hidden="true" tabindex="-1"></a><span class="in">  lfc_col = "log2FoldChange",</span></span>
+<span id="cb13-340"><a href="#cb13-340" aria-hidden="true" tabindex="-1"></a><span class="in">  p_col   = "padj_qvalue",     </span></span>
+<span id="cb13-341"><a href="#cb13-341" aria-hidden="true" tabindex="-1"></a><span class="in">  fallback_p_col = "pvalue",   </span></span>
+<span id="cb13-342"><a href="#cb13-342" aria-hidden="true" tabindex="-1"></a><span class="in">  label_col = "EnsemblGeneID", # gene label </span></span>
+<span id="cb13-343"><a href="#cb13-343" aria-hidden="true" tabindex="-1"></a><span class="in">  lfc_thresh = 1,              </span></span>
+<span id="cb13-344"><a href="#cb13-344" aria-hidden="true" tabindex="-1"></a><span class="in">  p_thresh   = 0.05,           # significance</span></span>
+<span id="cb13-345"><a href="#cb13-345" aria-hidden="true" tabindex="-1"></a><span class="in">  top_n      = 15,             # label </span></span>
+<span id="cb13-346"><a href="#cb13-346" aria-hidden="true" tabindex="-1"></a><span class="in">  point_size = 1.8</span></span>
+<span id="cb13-347"><a href="#cb13-347" aria-hidden="true" tabindex="-1"></a><span class="in">){</span></span>
+<span id="cb13-348"><a href="#cb13-348" aria-hidden="true" tabindex="-1"></a><span class="in">  stopifnot(lfc_col %in% names(df))</span></span>
+<span id="cb13-349"><a href="#cb13-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-350"><a href="#cb13-350" aria-hidden="true" tabindex="-1"></a><span class="in">  # Picking P-values</span></span>
+<span id="cb13-351"><a href="#cb13-351" aria-hidden="true" tabindex="-1"></a><span class="in">  use_p &lt;- df[[p_col]]</span></span>
+<span id="cb13-352"><a href="#cb13-352" aria-hidden="true" tabindex="-1"></a><span class="in">  if (all(is.na(use_p)) &amp;&amp; !is.null(fallback_p_col) &amp;&amp; fallback_p_col %in% names(df)) {</span></span>
+<span id="cb13-353"><a href="#cb13-353" aria-hidden="true" tabindex="-1"></a><span class="in">    message("All values in '", p_col, "' are NA. Falling back to '", fallback_p_col, "'.")</span></span>
+<span id="cb13-354"><a href="#cb13-354" aria-hidden="true" tabindex="-1"></a><span class="in">    use_p &lt;- df[[fallback_p_col]]</span></span>
+<span id="cb13-355"><a href="#cb13-355" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb13-356"><a href="#cb13-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-357"><a href="#cb13-357" aria-hidden="true" tabindex="-1"></a><span class="in">  # assemble tibble</span></span>
+<span id="cb13-358"><a href="#cb13-358" aria-hidden="true" tabindex="-1"></a><span class="in">  dat &lt;- df %&gt;%</span></span>
+<span id="cb13-359"><a href="#cb13-359" aria-hidden="true" tabindex="-1"></a><span class="in">    mutate(</span></span>
+<span id="cb13-360"><a href="#cb13-360" aria-hidden="true" tabindex="-1"></a><span class="in">      .lfc = .data[[lfc_col]],</span></span>
+<span id="cb13-361"><a href="#cb13-361" aria-hidden="true" tabindex="-1"></a><span class="in">      .p   = use_p,</span></span>
+<span id="cb13-362"><a href="#cb13-362" aria-hidden="true" tabindex="-1"></a><span class="in">      .neglog10p = -log10(.p),</span></span>
+<span id="cb13-363"><a href="#cb13-363" aria-hidden="true" tabindex="-1"></a><span class="in">      status = case_when(</span></span>
+<span id="cb13-364"><a href="#cb13-364" aria-hidden="true" tabindex="-1"></a><span class="in">        !is.na(.p) &amp; .p &lt; p_thresh &amp; .lfc &gt;=  lfc_thresh ~ "Up",</span></span>
+<span id="cb13-365"><a href="#cb13-365" aria-hidden="true" tabindex="-1"></a><span class="in">        !is.na(.p) &amp; .p &lt; p_thresh &amp; .lfc &lt;= -lfc_thresh ~ "Down",</span></span>
+<span id="cb13-366"><a href="#cb13-366" aria-hidden="true" tabindex="-1"></a><span class="in">        TRUE ~ "Unchanged"</span></span>
+<span id="cb13-367"><a href="#cb13-367" aria-hidden="true" tabindex="-1"></a><span class="in">      )</span></span>
+<span id="cb13-368"><a href="#cb13-368" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb13-369"><a href="#cb13-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-370"><a href="#cb13-370" aria-hidden="true" tabindex="-1"></a><span class="in">  # Address label to points</span></span>
+<span id="cb13-371"><a href="#cb13-371" aria-hidden="true" tabindex="-1"></a><span class="in">  lab_dat &lt;- dat %&gt;%</span></span>
+<span id="cb13-372"><a href="#cb13-372" aria-hidden="true" tabindex="-1"></a><span class="in">    filter(status %in% c("Up","Down")) %&gt;%</span></span>
+<span id="cb13-373"><a href="#cb13-373" aria-hidden="true" tabindex="-1"></a><span class="in">    arrange(desc(.neglog10p)) %&gt;%</span></span>
+<span id="cb13-374"><a href="#cb13-374" aria-hidden="true" tabindex="-1"></a><span class="in">    slice_head(n = top_n)</span></span>
+<span id="cb13-375"><a href="#cb13-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-376"><a href="#cb13-376" aria-hidden="true" tabindex="-1"></a><span class="in">  p &lt;- ggplot(dat, aes(x = .lfc, y = .neglog10p, color = status)) +</span></span>
+<span id="cb13-377"><a href="#cb13-377" aria-hidden="true" tabindex="-1"></a><span class="in">    geom_point(alpha = 0.8, size = point_size, na.rm = TRUE) +</span></span>
+<span id="cb13-378"><a href="#cb13-378" aria-hidden="true" tabindex="-1"></a><span class="in">    geom_vline(xintercept = c(-lfc_thresh, lfc_thresh), linetype = "dashed") +</span></span>
+<span id="cb13-379"><a href="#cb13-379" aria-hidden="true" tabindex="-1"></a><span class="in">    geom_hline(yintercept = -log10(p_thresh), linetype = "dashed") +</span></span>
+<span id="cb13-380"><a href="#cb13-380" aria-hidden="true" tabindex="-1"></a><span class="in">    scale_color_manual(values = c("Down"="#2b6cb0","Unchanged"="grey60","Up"="#e53e3e")) +</span></span>
+<span id="cb13-381"><a href="#cb13-381" aria-hidden="true" tabindex="-1"></a><span class="in">    labs(</span></span>
+<span id="cb13-382"><a href="#cb13-382" aria-hidden="true" tabindex="-1"></a><span class="in">      x = "LFC",</span></span>
+<span id="cb13-383"><a href="#cb13-383" aria-hidden="true" tabindex="-1"></a><span class="in">      y = expression(-log[10](adj.p-value)),</span></span>
+<span id="cb13-384"><a href="#cb13-384" aria-hidden="true" tabindex="-1"></a><span class="in">      color = "LFC"</span></span>
+<span id="cb13-385"><a href="#cb13-385" aria-hidden="true" tabindex="-1"></a><span class="in">    ) +</span></span>
+<span id="cb13-386"><a href="#cb13-386" aria-hidden="true" tabindex="-1"></a><span class="in">    theme_minimal(base_size = 12) +</span></span>
+<span id="cb13-387"><a href="#cb13-387" aria-hidden="true" tabindex="-1"></a><span class="in">    theme(legend.position = "right")</span></span>
+<span id="cb13-388"><a href="#cb13-388" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-389"><a href="#cb13-389" aria-hidden="true" tabindex="-1"></a><span class="in">  # add labels</span></span>
+<span id="cb13-390"><a href="#cb13-390" aria-hidden="true" tabindex="-1"></a><span class="in">  if (label_col %in% names(df) &amp;&amp; nrow(lab_dat) &gt; 0) {</span></span>
+<span id="cb13-391"><a href="#cb13-391" aria-hidden="true" tabindex="-1"></a><span class="in">    lab_dat$label_text &lt;- df[[label_col]][match(lab_dat$.p, use_p)]</span></span>
+<span id="cb13-392"><a href="#cb13-392" aria-hidden="true" tabindex="-1"></a><span class="in">    p &lt;- p + geom_label_repel(</span></span>
+<span id="cb13-393"><a href="#cb13-393" aria-hidden="true" tabindex="-1"></a><span class="in">      data = lab_dat,</span></span>
+<span id="cb13-394"><a href="#cb13-394" aria-hidden="true" tabindex="-1"></a><span class="in">      aes(label = .data[[label_col]]),</span></span>
+<span id="cb13-395"><a href="#cb13-395" aria-hidden="true" tabindex="-1"></a><span class="in">      size = 3,</span></span>
+<span id="cb13-396"><a href="#cb13-396" aria-hidden="true" tabindex="-1"></a><span class="in">      label.size = 0.2,</span></span>
+<span id="cb13-397"><a href="#cb13-397" aria-hidden="true" tabindex="-1"></a><span class="in">      max.overlaps = Inf,</span></span>
+<span id="cb13-398"><a href="#cb13-398" aria-hidden="true" tabindex="-1"></a><span class="in">      box.padding = 0.3,</span></span>
+<span id="cb13-399"><a href="#cb13-399" aria-hidden="true" tabindex="-1"></a><span class="in">      min.segment.length = 0</span></span>
+<span id="cb13-400"><a href="#cb13-400" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb13-401"><a href="#cb13-401" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb13-402"><a href="#cb13-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-403"><a href="#cb13-403" aria-hidden="true" tabindex="-1"></a><span class="in">  return(p)</span></span>
+<span id="cb13-404"><a href="#cb13-404" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb13-405"><a href="#cb13-405" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-406"><a href="#cb13-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-407"><a href="#cb13-407" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE}</span></span>
+<span id="cb13-408"><a href="#cb13-408" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-volcanoplot</span></span>
+<span id="cb13-409"><a href="#cb13-409" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "Volcano plot demonstrating the relationship between Log-fold change and level of significance. The top 15 most significant genes are labelled." </span></span>
+<span id="cb13-410"><a href="#cb13-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-411"><a href="#cb13-411" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- volcano_plot(</span></span>
+<span id="cb13-412"><a href="#cb13-412" aria-hidden="true" tabindex="-1"></a><span class="in">  df_visual,</span></span>
+<span id="cb13-413"><a href="#cb13-413" aria-hidden="true" tabindex="-1"></a><span class="in">  lfc_col   = "log2FoldChange",</span></span>
+<span id="cb13-414"><a href="#cb13-414" aria-hidden="true" tabindex="-1"></a><span class="in">  p_col     = "padj_qvalue",     # q-value is used</span></span>
+<span id="cb13-415"><a href="#cb13-415" aria-hidden="true" tabindex="-1"></a><span class="in">  fallback_p_col = "pvalue",     # if no q-value is present</span></span>
+<span id="cb13-416"><a href="#cb13-416" aria-hidden="true" tabindex="-1"></a><span class="in">  label_col = "EnsemblGeneID",   # "GeneID" or "Description" can also be inserted</span></span>
+<span id="cb13-417"><a href="#cb13-417" aria-hidden="true" tabindex="-1"></a><span class="in">  lfc_thresh = 1,</span></span>
+<span id="cb13-418"><a href="#cb13-418" aria-hidden="true" tabindex="-1"></a><span class="in">  p_thresh   = 0.05,</span></span>
+<span id="cb13-419"><a href="#cb13-419" aria-hidden="true" tabindex="-1"></a><span class="in">  top_n      = 15</span></span>
+<span id="cb13-420"><a href="#cb13-420" aria-hidden="true" tabindex="-1"></a><span class="in">)</span></span>
+<span id="cb13-421"><a href="#cb13-421" aria-hidden="true" tabindex="-1"></a><span class="in">p</span></span>
+<span id="cb13-422"><a href="#cb13-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-423"><a href="#cb13-423" aria-hidden="true" tabindex="-1"></a><span class="in"># Save to file</span></span>
+<span id="cb13-424"><a href="#cb13-424" aria-hidden="true" tabindex="-1"></a><span class="in">ggsave("volcano_plot.png", p, width = 7, height = 6, dpi = 300)</span></span>
+<span id="cb13-425"><a href="#cb13-425" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-426"><a href="#cb13-426" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-427"><a href="#cb13-427" aria-hidden="true" tabindex="-1"></a>In this figure the top 15 up- and down-regulated genes are listed according to their level of LFC. The dot appointed at each gene marks their level of significance by the adjusted p-value. The three genes with the lowest LFC and the *ENSG00000240567* gene (high significance), are of particular interest in relation to the down-regulated genes. The three genes with the highest LFC are of particular interest concerning the up-regulated genes (<span class="co">[</span><span class="ot">@fig-top-LFC</span><span class="co">]</span>).</span>
+<span id="cb13-428"><a href="#cb13-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-429"><a href="#cb13-429" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE}</span></span>
+<span id="cb13-430"><a href="#cb13-430" aria-hidden="true" tabindex="-1"></a><span class="in">top_lfc_lollipop &lt;- function(</span></span>
+<span id="cb13-431"><a href="#cb13-431" aria-hidden="true" tabindex="-1"></a><span class="in">  df,</span></span>
+<span id="cb13-432"><a href="#cb13-432" aria-hidden="true" tabindex="-1"></a><span class="in">  lfc_col = "log2FoldChange",</span></span>
+<span id="cb13-433"><a href="#cb13-433" aria-hidden="true" tabindex="-1"></a><span class="in">  desc_col = "Description",       </span></span>
+<span id="cb13-434"><a href="#cb13-434" aria-hidden="true" tabindex="-1"></a><span class="in">  p_col   = "padj_qvalue",        </span></span>
+<span id="cb13-435"><a href="#cb13-435" aria-hidden="true" tabindex="-1"></a><span class="in">  n = 15,                         </span></span>
+<span id="cb13-436"><a href="#cb13-436" aria-hidden="true" tabindex="-1"></a><span class="in">  wrap_width = 35,                </span></span>
+<span id="cb13-437"><a href="#cb13-437" aria-hidden="true" tabindex="-1"></a><span class="in">  show_fill_by_significance = TRUE</span></span>
+<span id="cb13-438"><a href="#cb13-438" aria-hidden="true" tabindex="-1"></a><span class="in">){</span></span>
+<span id="cb13-439"><a href="#cb13-439" aria-hidden="true" tabindex="-1"></a><span class="in">  stopifnot(lfc_col %in% names(df), desc_col %in% names(df))</span></span>
+<span id="cb13-440"><a href="#cb13-440" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-441"><a href="#cb13-441" aria-hidden="true" tabindex="-1"></a><span class="in">  # p-values</span></span>
+<span id="cb13-442"><a href="#cb13-442" aria-hidden="true" tabindex="-1"></a><span class="in">  p_use &lt;- if (p_col %in% names(df)) df[[p_col]] else NA_real_</span></span>
+<span id="cb13-443"><a href="#cb13-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-444"><a href="#cb13-444" aria-hidden="true" tabindex="-1"></a><span class="in">  dat &lt;- df %&gt;%</span></span>
+<span id="cb13-445"><a href="#cb13-445" aria-hidden="true" tabindex="-1"></a><span class="in">    mutate(</span></span>
+<span id="cb13-446"><a href="#cb13-446" aria-hidden="true" tabindex="-1"></a><span class="in">      .lfc  = .data[[lfc_col]],</span></span>
+<span id="cb13-447"><a href="#cb13-447" aria-hidden="true" tabindex="-1"></a><span class="in">      .desc = str_trim(.data[[desc_col]]),</span></span>
+<span id="cb13-448"><a href="#cb13-448" aria-hidden="true" tabindex="-1"></a><span class="in">      .desc = ifelse(.desc == "" | is.na(.desc), as.character(row_number()), .desc),</span></span>
+<span id="cb13-449"><a href="#cb13-449" aria-hidden="true" tabindex="-1"></a><span class="in">      .p    = p_use,</span></span>
+<span id="cb13-450"><a href="#cb13-450" aria-hidden="true" tabindex="-1"></a><span class="in">      .ml10p = -log10(.p)</span></span>
+<span id="cb13-451"><a href="#cb13-451" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb13-452"><a href="#cb13-452" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-453"><a href="#cb13-453" aria-hidden="true" tabindex="-1"></a><span class="in">  top_up &lt;- dat %&gt;%</span></span>
+<span id="cb13-454"><a href="#cb13-454" aria-hidden="true" tabindex="-1"></a><span class="in">    filter(.lfc &gt; 0) %&gt;%</span></span>
+<span id="cb13-455"><a href="#cb13-455" aria-hidden="true" tabindex="-1"></a><span class="in">    slice_max(order_by = .lfc, n = n, with_ties = FALSE) %&gt;%</span></span>
+<span id="cb13-456"><a href="#cb13-456" aria-hidden="true" tabindex="-1"></a><span class="in">    mutate(direction = "Up")</span></span>
+<span id="cb13-457"><a href="#cb13-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-458"><a href="#cb13-458" aria-hidden="true" tabindex="-1"></a><span class="in">  top_down &lt;- dat %&gt;%</span></span>
+<span id="cb13-459"><a href="#cb13-459" aria-hidden="true" tabindex="-1"></a><span class="in">    filter(.lfc &lt; 0) %&gt;%</span></span>
+<span id="cb13-460"><a href="#cb13-460" aria-hidden="true" tabindex="-1"></a><span class="in">    slice_min(order_by = .lfc, n = n, with_ties = FALSE) %&gt;%</span></span>
+<span id="cb13-461"><a href="#cb13-461" aria-hidden="true" tabindex="-1"></a><span class="in">    mutate(direction = "Down")</span></span>
+<span id="cb13-462"><a href="#cb13-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-463"><a href="#cb13-463" aria-hidden="true" tabindex="-1"></a><span class="in">  top_dat &lt;- bind_rows(top_up, top_down) %&gt;%</span></span>
+<span id="cb13-464"><a href="#cb13-464" aria-hidden="true" tabindex="-1"></a><span class="in">    mutate(</span></span>
+<span id="cb13-465"><a href="#cb13-465" aria-hidden="true" tabindex="-1"></a><span class="in">      desc_wrapped = str_wrap(.desc, width = wrap_width),</span></span>
+<span id="cb13-466"><a href="#cb13-466" aria-hidden="true" tabindex="-1"></a><span class="in">      # order within facet </span></span>
+<span id="cb13-467"><a href="#cb13-467" aria-hidden="true" tabindex="-1"></a><span class="in">      desc_faceted = reorder_within(desc_wrapped, .lfc, direction)</span></span>
+<span id="cb13-468"><a href="#cb13-468" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb13-469"><a href="#cb13-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-470"><a href="#cb13-470" aria-hidden="true" tabindex="-1"></a><span class="in">  p &lt;- ggplot(top_dat, aes(x = .lfc, y = desc_faceted, color = direction)) +</span></span>
+<span id="cb13-471"><a href="#cb13-471" aria-hidden="true" tabindex="-1"></a><span class="in">    # stems</span></span>
+<span id="cb13-472"><a href="#cb13-472" aria-hidden="true" tabindex="-1"></a><span class="in">    geom_segment(aes(x = 0, xend = .lfc, y = desc_faceted, yend = desc_faceted),</span></span>
+<span id="cb13-473"><a href="#cb13-473" aria-hidden="true" tabindex="-1"></a><span class="in">                 linewidth = 0.6, alpha = 0.6) +</span></span>
+<span id="cb13-474"><a href="#cb13-474" aria-hidden="true" tabindex="-1"></a><span class="in">    # heads</span></span>
+<span id="cb13-475"><a href="#cb13-475" aria-hidden="true" tabindex="-1"></a><span class="in">    geom_point(aes(size = if (show_fill_by_significance) .ml10p else NULL),</span></span>
+<span id="cb13-476"><a href="#cb13-476" aria-hidden="true" tabindex="-1"></a><span class="in">               alpha = 0.9) +</span></span>
+<span id="cb13-477"><a href="#cb13-477" aria-hidden="true" tabindex="-1"></a><span class="in">    facet_wrap(~ direction, scales = "free_y") +</span></span>
+<span id="cb13-478"><a href="#cb13-478" aria-hidden="true" tabindex="-1"></a><span class="in">    scale_y_reordered() +</span></span>
+<span id="cb13-479"><a href="#cb13-479" aria-hidden="true" tabindex="-1"></a><span class="in">    scale_color_manual(values = c("Down" = "#2b6cb0", "Up" = "#e53e3e")) +</span></span>
+<span id="cb13-480"><a href="#cb13-480" aria-hidden="true" tabindex="-1"></a><span class="in">    scale_size_continuous(name = expression(-log[10](adj.~p)), range = c(1.5, 4.5)) +</span></span>
+<span id="cb13-481"><a href="#cb13-481" aria-hidden="true" tabindex="-1"></a><span class="in">    labs(</span></span>
+<span id="cb13-482"><a href="#cb13-482" aria-hidden="true" tabindex="-1"></a><span class="in">      x = "LFC",</span></span>
+<span id="cb13-483"><a href="#cb13-483" aria-hidden="true" tabindex="-1"></a><span class="in">      y = NULL,</span></span>
+<span id="cb13-484"><a href="#cb13-484" aria-hidden="true" tabindex="-1"></a><span class="in">      subtitle = if (show_fill_by_significance &amp;&amp; p_col %in% names(df))</span></span>
+<span id="cb13-485"><a href="#cb13-485" aria-hidden="true" tabindex="-1"></a><span class="in">        paste0("Point size encodes −log10(", p_col, ")") else NULL,</span></span>
+<span id="cb13-486"><a href="#cb13-486" aria-hidden="true" tabindex="-1"></a><span class="in">      color = "Direction"</span></span>
+<span id="cb13-487"><a href="#cb13-487" aria-hidden="true" tabindex="-1"></a><span class="in">    ) +</span></span>
+<span id="cb13-488"><a href="#cb13-488" aria-hidden="true" tabindex="-1"></a><span class="in">    theme_minimal(base_size = 12) +</span></span>
+<span id="cb13-489"><a href="#cb13-489" aria-hidden="true" tabindex="-1"></a><span class="in">    theme(</span></span>
+<span id="cb13-490"><a href="#cb13-490" aria-hidden="true" tabindex="-1"></a><span class="in">      legend.position = if (show_fill_by_significance) "right" else "none",</span></span>
+<span id="cb13-491"><a href="#cb13-491" aria-hidden="true" tabindex="-1"></a><span class="in">      panel.grid.major.y = element_blank()</span></span>
+<span id="cb13-492"><a href="#cb13-492" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb13-493"><a href="#cb13-493" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-494"><a href="#cb13-494" aria-hidden="true" tabindex="-1"></a><span class="in">  return(p)</span></span>
+<span id="cb13-495"><a href="#cb13-495" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb13-496"><a href="#cb13-496" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-497"><a href="#cb13-497" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-498"><a href="#cb13-498" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-499"><a href="#cb13-499" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE, warning=FALSE}</span></span>
+<span id="cb13-500"><a href="#cb13-500" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-top-LFC</span></span>
+<span id="cb13-501"><a href="#cb13-501" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "The 30 most down- and upregulated genes according to their LFC value, and their associated significance (dot-size)."</span></span>
+<span id="cb13-502"><a href="#cb13-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-503"><a href="#cb13-503" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- top_lfc_lollipop(</span></span>
+<span id="cb13-504"><a href="#cb13-504" aria-hidden="true" tabindex="-1"></a><span class="in">  df_visual,</span></span>
+<span id="cb13-505"><a href="#cb13-505" aria-hidden="true" tabindex="-1"></a><span class="in">  lfc_col = "log2FoldChange",</span></span>
+<span id="cb13-506"><a href="#cb13-506" aria-hidden="true" tabindex="-1"></a><span class="in">  desc_col = "EnsemblGeneID",</span></span>
+<span id="cb13-507"><a href="#cb13-507" aria-hidden="true" tabindex="-1"></a><span class="in">  p_col   = "padj_qvalue",  </span></span>
+<span id="cb13-508"><a href="#cb13-508" aria-hidden="true" tabindex="-1"></a><span class="in">  n = 15</span></span>
+<span id="cb13-509"><a href="#cb13-509" aria-hidden="true" tabindex="-1"></a><span class="in">)</span></span>
+<span id="cb13-510"><a href="#cb13-510" aria-hidden="true" tabindex="-1"></a><span class="in">p</span></span>
+<span id="cb13-511"><a href="#cb13-511" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-512"><a href="#cb13-512" aria-hidden="true" tabindex="-1"></a><span class="in">ggsave("top_lfc_lollipop.png", p, width = 9, height = 6, dpi = 300)</span></span>
+<span id="cb13-513"><a href="#cb13-513" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-514"><a href="#cb13-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-515"><a href="#cb13-515" aria-hidden="true" tabindex="-1"></a>The normalized counts for the genes of particular interest were visualized, to demonstrate the difference between the GDM and control group. From the visualization especially gene *ENSG00000161634* and *ENSG00000110484* seem to be of interest, I will refer to them as gene *dermicidin* and *LINC02067* (both names were obtained from the metadata,). The expression of dermicidin demonstrates very clear intervariability (variation between groups) and very low intravariability (variation within group) (<span class="co">[</span><span class="ot">@fig-dermicidin</span><span class="co">]</span>). For LINC02067 the intravariability is a bit higher for the control group, in comparison to dermicidin, but the intervariability is still very clear. Especially the normalized counts for the GDM group for LINC02067 are very close togetherndefined (<span class="co">[</span><span class="ot">@fig-LINC</span><span class="co">]</span>). This suggests that dermicidin and LINC02067 are down-regulated in the GDM group compared with the control group in the postpartum placenta.</span>
+<span id="cb13-516"><a href="#cb13-516" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-517"><a href="#cb13-517" aria-hidden="true" tabindex="-1"></a>::::: panel-tabset</span>
+<span id="cb13-518"><a href="#cb13-518" aria-hidden="true" tabindex="-1"></a><span class="fu">### Down-regulated</span></span>
+<span id="cb13-519"><a href="#cb13-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-520"><a href="#cb13-520" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
+<span id="cb13-521"><a href="#cb13-521" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000161634 — Dermicidin</span></span>
+<span id="cb13-522"><a href="#cb13-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-525"><a href="#cb13-525" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-526"><a href="#cb13-526" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-527"><a href="#cb13-527" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-528"><a href="#cb13-528" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-529"><a href="#cb13-529" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-dermicidin</span></span>
+<span id="cb13-530"><a href="#cb13-530" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"117159"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-531"><a href="#cb13-531" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-532"><a href="#cb13-532" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene: ENSG00000161634 (Dermicidin)"</span>,</span>
+<span id="cb13-533"><a href="#cb13-533" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-534"><a href="#cb13-534" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-535"><a href="#cb13-535" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-536"><a href="#cb13-536" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000110484 — SCGB2A2</span></span>
+<span id="cb13-537"><a href="#cb13-537" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-540"><a href="#cb13-540" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-541"><a href="#cb13-541" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-542"><a href="#cb13-542" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-543"><a href="#cb13-543" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-544"><a href="#cb13-544" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"3852"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-545"><a href="#cb13-545" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-546"><a href="#cb13-546" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene:  ENSG00000110484 (secretoglobin family 2A member 2)"</span>,</span>
+<span id="cb13-547"><a href="#cb13-547" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-548"><a href="#cb13-548" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-549"><a href="#cb13-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-550"><a href="#cb13-550" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000186081 — Keratin 5</span></span>
+<span id="cb13-551"><a href="#cb13-551" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-554"><a href="#cb13-554" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-555"><a href="#cb13-555" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-556"><a href="#cb13-556" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-557"><a href="#cb13-557" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-558"><a href="#cb13-558" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"3852"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-559"><a href="#cb13-559" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-560"><a href="#cb13-560" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene: ENSG00000186081 (keratin 5)"</span>,</span>
+<span id="cb13-561"><a href="#cb13-561" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-562"><a href="#cb13-562" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-563"><a href="#cb13-563" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-564"><a href="#cb13-564" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000240567 — LINC02067</span></span>
+<span id="cb13-565"><a href="#cb13-565" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-568"><a href="#cb13-568" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-569"><a href="#cb13-569" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-570"><a href="#cb13-570" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-571"><a href="#cb13-571" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-572"><a href="#cb13-572" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-LINC02067</span></span>
+<span id="cb13-573"><a href="#cb13-573" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"4250"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-574"><a href="#cb13-574" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-575"><a href="#cb13-575" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene: ENSG00000240567 (long intergenic non-protein coding | 2067)"</span>,</span>
+<span id="cb13-576"><a href="#cb13-576" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-577"><a href="#cb13-577" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-578"><a href="#cb13-578" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-579"><a href="#cb13-579" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-580"><a href="#cb13-580" aria-hidden="true" tabindex="-1"></a><span class="fu">### Up-regulated</span></span>
+<span id="cb13-581"><a href="#cb13-581" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-582"><a href="#cb13-582" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
+<span id="cb13-583"><a href="#cb13-583" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000101938 — CHRDL1</span></span>
+<span id="cb13-584"><a href="#cb13-584" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-587"><a href="#cb13-587" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-588"><a href="#cb13-588" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-589"><a href="#cb13-589" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-590"><a href="#cb13-590" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-591"><a href="#cb13-591" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"91851"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-592"><a href="#cb13-592" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-593"><a href="#cb13-593" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene: ENSG00000101938 (Chordin like 1)"</span>,</span>
+<span id="cb13-594"><a href="#cb13-594" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-595"><a href="#cb13-595" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-596"><a href="#cb13-596" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-597"><a href="#cb13-597" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000122133 — PAEP</span></span>
+<span id="cb13-598"><a href="#cb13-598" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-601"><a href="#cb13-601" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-602"><a href="#cb13-602" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-603"><a href="#cb13-603" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-604"><a href="#cb13-604" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-605"><a href="#cb13-605" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"5047"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-606"><a href="#cb13-606" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-607"><a href="#cb13-607" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene: ENSG00000122133 (progestagen associated endometrial protein)"</span>,</span>
+<span id="cb13-608"><a href="#cb13-608" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-609"><a href="#cb13-609" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-610"><a href="#cb13-610" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-611"><a href="#cb13-611" aria-hidden="true" tabindex="-1"></a><span class="fu">##### ENSG00000162882 — HAAO</span></span>
+<span id="cb13-612"><a href="#cb13-612" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-615"><a href="#cb13-615" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-616"><a href="#cb13-616" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb13-617"><a href="#cb13-617" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-618"><a href="#cb13-618" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-619"><a href="#cb13-619" aria-hidden="true" tabindex="-1"></a><span class="fu">plotCounts</span>(dds, <span class="st">"23498"</span>, <span class="at">intgroup =</span> <span class="st">"condition"</span>,</span>
+<span id="cb13-620"><a href="#cb13-620" aria-hidden="true" tabindex="-1"></a>           <span class="at">normalized =</span> <span class="cn">TRUE</span>, <span class="at">transform =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-621"><a href="#cb13-621" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">"Gene: ENSG00000162882 (3-hydroxyanthranilate 3,4-dioxygenase)"</span>,</span>
+<span id="cb13-622"><a href="#cb13-622" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab =</span> <span class="st">"Group"</span>)</span>
+<span id="cb13-623"><a href="#cb13-623" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-624"><a href="#cb13-624" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-625"><a href="#cb13-625" aria-hidden="true" tabindex="-1"></a>:::::</span>
+<span id="cb13-626"><a href="#cb13-626" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-627"><a href="#cb13-627" aria-hidden="true" tabindex="-1"></a>This visualization provides an overview of the results generated in this analysis. It displays the 16 genes with the highest LFC values, along with their GeneIDs/Ensembl GeneIDs and a corresponding description. The fill color of the bars indicates the level of significance. The plot highlights ENSG00000161634 (dermicidin) and ENSG00000240567 (LINC02067) as particularly noteworthy, especially compared with the other genes that have high LFC values (<span class="co">[</span><span class="ot">@fig-full</span><span class="co">]</span>).</span>
+<span id="cb13-628"><a href="#cb13-628" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-629"><a href="#cb13-629" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE}</span></span>
+<span id="cb13-630"><a href="#cb13-630" aria-hidden="true" tabindex="-1"></a><span class="in">df_top &lt;- df_visual |&gt; arrange(log2FoldChange) </span></span>
+<span id="cb13-631"><a href="#cb13-631" aria-hidden="true" tabindex="-1"></a><span class="in">df_top &lt;- df_top[1:8, ]</span></span>
+<span id="cb13-632"><a href="#cb13-632" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-633"><a href="#cb13-633" aria-hidden="true" tabindex="-1"></a><span class="in">df_bottom &lt;- df_visual |&gt; arrange(desc(log2FoldChange)) </span></span>
+<span id="cb13-634"><a href="#cb13-634" aria-hidden="true" tabindex="-1"></a><span class="in">df_bottom &lt;- df_bottom[1:8, ]</span></span>
+<span id="cb13-635"><a href="#cb13-635" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-636"><a href="#cb13-636" aria-hidden="true" tabindex="-1"></a><span class="in">df_top_16_LFC &lt;- bind_rows(df_top, df_bottom)</span></span>
+<span id="cb13-637"><a href="#cb13-637" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-638"><a href="#cb13-638" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-639"><a href="#cb13-639" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE, warning=FALSE}</span></span>
+<span id="cb13-640"><a href="#cb13-640" aria-hidden="true" tabindex="-1"></a><span class="in">#| label: fig-full</span></span>
+<span id="cb13-641"><a href="#cb13-641" aria-hidden="true" tabindex="-1"></a><span class="in">#| fig-cap: "Demonstrating the genes with the eight lowest and eight highest LFC values, and their associated description. The fill of the bars indicate their level of significance."</span></span>
+<span id="cb13-642"><a href="#cb13-642" aria-hidden="true" tabindex="-1"></a><span class="in">#| warning: false</span></span>
+<span id="cb13-643"><a href="#cb13-643" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-644"><a href="#cb13-644" aria-hidden="true" tabindex="-1"></a><span class="in">df &lt;- df_top_16_LFC</span></span>
+<span id="cb13-645"><a href="#cb13-645" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-646"><a href="#cb13-646" aria-hidden="true" tabindex="-1"></a><span class="in"># ---- prep ----</span></span>
+<span id="cb13-647"><a href="#cb13-647" aria-hidden="true" tabindex="-1"></a><span class="in">df$ID_left &lt;- ifelse(!is.na(df$EnsemblGeneID) &amp; nzchar(df$EnsemblGeneID),</span></span>
+<span id="cb13-648"><a href="#cb13-648" aria-hidden="true" tabindex="-1"></a><span class="in">                     df$EnsemblGeneID, df$GeneID)</span></span>
+<span id="cb13-649"><a href="#cb13-649" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-650"><a href="#cb13-650" aria-hidden="true" tabindex="-1"></a><span class="in">df$Significant &lt;- !is.na(df$padj_qvalue) &amp; df$padj_qvalue &lt; 0.05</span></span>
+<span id="cb13-651"><a href="#cb13-651" aria-hidden="true" tabindex="-1"></a><span class="in">df$Direction   &lt;- ifelse(df$log2FoldChange &gt;= 0, "Up", "Down")</span></span>
+<span id="cb13-652"><a href="#cb13-652" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-653"><a href="#cb13-653" aria-hidden="true" tabindex="-1"></a><span class="in"># show bars ordered by LFC</span></span>
+<span id="cb13-654"><a href="#cb13-654" aria-hidden="true" tabindex="-1"></a><span class="in">df$GeneID &lt;- factor(df$GeneID, levels = df$GeneID[order(df$log2FoldChange)])</span></span>
+<span id="cb13-655"><a href="#cb13-655" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-656"><a href="#cb13-656" aria-hidden="true" tabindex="-1"></a><span class="in"># wrap long descriptions (base R; always returns one string per row)</span></span>
+<span id="cb13-657"><a href="#cb13-657" aria-hidden="true" tabindex="-1"></a><span class="in">wrap_one &lt;- function(s, width = 40) paste(strwrap(as.character(s), width = width), collapse = "\n")</span></span>
+<span id="cb13-658"><a href="#cb13-658" aria-hidden="true" tabindex="-1"></a><span class="in">df$Description_wrapped &lt;- vapply(df$Description, wrap_one, character(1), width = 40)</span></span>
+<span id="cb13-659"><a href="#cb13-659" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-660"><a href="#cb13-660" aria-hidden="true" tabindex="-1"></a><span class="in"># padding for side labels</span></span>
+<span id="cb13-661"><a href="#cb13-661" aria-hidden="true" tabindex="-1"></a><span class="in">x_min &lt;- min(df$log2FoldChange, na.rm = TRUE)</span></span>
+<span id="cb13-662"><a href="#cb13-662" aria-hidden="true" tabindex="-1"></a><span class="in">x_max &lt;- max(df$log2FoldChange, na.rm = TRUE)</span></span>
+<span id="cb13-663"><a href="#cb13-663" aria-hidden="true" tabindex="-1"></a><span class="in">pad   &lt;- 0.08 * (x_max - x_min)</span></span>
+<span id="cb13-664"><a href="#cb13-664" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-665"><a href="#cb13-665" aria-hidden="true" tabindex="-1"></a><span class="in"># ---- plot ----</span></span>
+<span id="cb13-666"><a href="#cb13-666" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-667"><a href="#cb13-667" aria-hidden="true" tabindex="-1"></a><span class="in"># Continuous column for p-val</span></span>
+<span id="cb13-668"><a href="#cb13-668" aria-hidden="true" tabindex="-1"></a><span class="in">df$neglog10_padj_qvalue &lt;- ifelse(is.na(df$padj_qvalue), NA_real_, -log10(df$padj_qvalue))</span></span>
+<span id="cb13-669"><a href="#cb13-669" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-670"><a href="#cb13-670" aria-hidden="true" tabindex="-1"></a><span class="in">p &lt;- ggplot(df, aes(y = GeneID, x = log2FoldChange)) +</span></span>
+<span id="cb13-671"><a href="#cb13-671" aria-hidden="true" tabindex="-1"></a><span class="in">  # bars: height = LFC; fill = significance; outline = direction</span></span>
+<span id="cb13-672"><a href="#cb13-672" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_col(aes(fill = neglog10_padj_qvalue, color = Direction), width = 0.7) +</span></span>
+<span id="cb13-673"><a href="#cb13-673" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_color_manual(values = c(Down = "blue", Up = "red")) +</span></span>
+<span id="cb13-674"><a href="#cb13-674" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_fill_gradient(</span></span>
+<span id="cb13-675"><a href="#cb13-675" aria-hidden="true" tabindex="-1"></a><span class="in">    name = "-log10(adj. p)",</span></span>
+<span id="cb13-676"><a href="#cb13-676" aria-hidden="true" tabindex="-1"></a><span class="in">    low = "white", high = "grey30", na.value = "white"</span></span>
+<span id="cb13-677"><a href="#cb13-677" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb13-678"><a href="#cb13-678" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-679"><a href="#cb13-679" aria-hidden="true" tabindex="-1"></a><span class="in">  # left IDs and right descriptions</span></span>
+<span id="cb13-680"><a href="#cb13-680" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_text(aes(y = GeneID, x = x_min - pad, label = ID_left),</span></span>
+<span id="cb13-681"><a href="#cb13-681" aria-hidden="true" tabindex="-1"></a><span class="in">            hjust = 1, size = 3, inherit.aes = FALSE) +</span></span>
+<span id="cb13-682"><a href="#cb13-682" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_text(aes(y = GeneID, x = x_max + pad, label = Description_wrapped),</span></span>
+<span id="cb13-683"><a href="#cb13-683" aria-hidden="true" tabindex="-1"></a><span class="in">            hjust = 0, size = 3, inherit.aes = FALSE) +</span></span>
+<span id="cb13-684"><a href="#cb13-684" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-685"><a href="#cb13-685" aria-hidden="true" tabindex="-1"></a><span class="in">  # space for side labels</span></span>
+<span id="cb13-686"><a href="#cb13-686" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_x_continuous(limits = c(x_min - 1.8*pad, x_max + 1.8*pad),</span></span>
+<span id="cb13-687"><a href="#cb13-687" aria-hidden="true" tabindex="-1"></a><span class="in">                     position = "top") +</span></span>
+<span id="cb13-688"><a href="#cb13-688" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(x = "LFC", y = NULL,</span></span>
+<span id="cb13-689"><a href="#cb13-689" aria-hidden="true" tabindex="-1"></a><span class="in">       color = "Direction") +</span></span>
+<span id="cb13-690"><a href="#cb13-690" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-691"><a href="#cb13-691" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_flip() +</span></span>
+<span id="cb13-692"><a href="#cb13-692" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_cartesian(clip = "off") +  </span></span>
+<span id="cb13-693"><a href="#cb13-693" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal(base_size = 12) +</span></span>
+<span id="cb13-694"><a href="#cb13-694" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
+<span id="cb13-695"><a href="#cb13-695" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid.major.y = element_blank(),</span></span>
+<span id="cb13-696"><a href="#cb13-696" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid.minor   = element_blank(),</span></span>
+<span id="cb13-697"><a href="#cb13-697" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.text.y  = element_blank(),   </span></span>
+<span id="cb13-698"><a href="#cb13-698" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.ticks.y = element_blank(),</span></span>
+<span id="cb13-699"><a href="#cb13-699" aria-hidden="true" tabindex="-1"></a><span class="in">    plot.margin = margin(10, 90, 10, 90),  </span></span>
+<span id="cb13-700"><a href="#cb13-700" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
+<span id="cb13-701"><a href="#cb13-701" aria-hidden="true" tabindex="-1"></a><span class="in">  )</span></span>
+<span id="cb13-702"><a href="#cb13-702" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-703"><a href="#cb13-703" aria-hidden="true" tabindex="-1"></a><span class="in">p</span></span>
+<span id="cb13-704"><a href="#cb13-704" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-705"><a href="#cb13-705" aria-hidden="true" tabindex="-1"></a><span class="in">suppressWarnings(ggsave("top_16_LFC_with_Genes_and_Description.png", p, width = 9, height = 6, dpi = 300))</span></span>
+<span id="cb13-706"><a href="#cb13-706" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-707"><a href="#cb13-707" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-708"><a href="#cb13-708" aria-hidden="true" tabindex="-1"></a><span class="fu">### Discussion &amp; Conclusion</span></span>
+<span id="cb13-709"><a href="#cb13-709" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-710"><a href="#cb13-710" aria-hidden="true" tabindex="-1"></a>The analysis identified two genes that appear to be significantly differentially expressed between the GDM and control groups. These findings are clearly illustrated in (<span class="co">[</span><span class="ot">@fig-dermicidin</span><span class="co">]</span>) and (<span class="co">[</span><span class="ot">@fig-LINC02067</span><span class="co">]</span>). One of these genes, **ENSG00000161634 (dermicidin)**, encodes a secreted protein with two major functional domains: (1) a C-terminal peptide with antimicrobial properties, and (2) an N-terminal peptide that promotes neural cell survival under conditions of severe oxidative stress <span class="co">[</span><span class="ot">@NCBIGene117159</span><span class="co">]</span>. This finding is particularly relevant given that GDM has been strongly associated with increased oxidative stress, suggesting that dermicidin and its protein products may represent potential biomarkers for GDM<span class="co">[</span><span class="ot">@Saucedo2023</span><span class="co">]</span>.</span>
+<span id="cb13-711"><a href="#cb13-711" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-712"><a href="#cb13-712" aria-hidden="true" tabindex="-1"></a>Another gene of potential interest is ENSG00000240567 (LINC02067), which appears to be differentially expressed between the GDM and control groups. This gene encodes a long intergenic non-protein coding RNA (lincRNA) and therefore does not produce a protein <span class="co">[</span><span class="ot">@NCBIGene101243545</span><span class="co">]</span>. Although its specific function has not been described in the literature, its differential expression suggests that it may still be biologically relevant and could serve as a potential biomarker.</span>
+<span id="cb13-713"><a href="#cb13-713" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-714"><a href="#cb13-714" aria-hidden="true" tabindex="-1"></a>This analysis uncovered several potentially relevant genes. However, the limited sample size likely reduced statistical power, such that only very strong signals could be detected with confidence. Future studies employing larger datasets will be valuable for validating these findings. Moreover, longitudinal datasets that include samples from different stages of gestation could provide important insights into how molecular profiles change over time and how these changes are influenced by GDM. Such data would help disentangle gestational age-related variation from disease-specific effects, thereby clarifying the true molecular signature of GDM.</span>
+</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>
